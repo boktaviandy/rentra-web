@@ -101,6 +101,10 @@ export function LoginPage() {
             )}
           </button>
         </form>
+
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+          Rentra v1.0.0 Production Release
+        </div>
       </div>
     </div>
   );

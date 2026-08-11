@@ -45,6 +45,9 @@ export function Header() {
         </div>
 
         <div className="header-actions">
+          {/* Version Badge */}
+          <span className="version-badge" title="Rentra Release v1.0.0">v1.0.0</span>
+
           {/* Language Toggle */}
           <button
             onClick={toggleLanguage}
