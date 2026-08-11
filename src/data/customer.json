@@ -1,0 +1,38 @@
+[
+  {
+    "id": "CUST-001",
+    "nama": "Budi Santoso",
+    "noHp": "081234567890",
+    "alamat": "Jl. Sudirman No. 45, Jakarta Selatan",
+    "noKtp": "3174012304890001",
+    "noSim": "90123849102",
+    "fotoKtp": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300",
+    "fotoSim": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300",
+    "catatan": "Pelanggan setia, selalu mengembalikan mobil bersih & tepat waktu",
+    "totalBooking": 12
+  },
+  {
+    "id": "CUST-002",
+    "nama": "Siti Rahmawati",
+    "noHp": "085678901234",
+    "alamat": "Jl. Gatot Subroto No. 12, Jakarta Pusat",
+    "noKtp": "3171095801920003",
+    "noSim": "88192039481",
+    "fotoKtp": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300",
+    "fotoSim": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300",
+    "catatan": "Sering sewa lepas kunci untuk perjalanan dinas luar kota",
+    "totalBooking": 8
+  },
+  {
+    "id": "CUST-003",
+    "nama": "Hendrik Wijaya",
+    "noHp": "087890123456",
+    "alamat": "Jl. Kebon Jeruk Indah No. 8, Jakarta Barat",
+    "noKtp": "3173021903880005",
+    "noSim": "77182930491",
+    "fotoKtp": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300",
+    "fotoSim": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300",
+    "catatan": "Sewa beserta driver untuk kunjungan klien",
+    "totalBooking": 5
+  }
+]

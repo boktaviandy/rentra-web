@@ -1,0 +1,70 @@
+.paket-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.paket-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.paket-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.paket-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.paket-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.price-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.price-period {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.paket-limits {
+  background: var(--bg-app);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.fitur-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.fitur-desc {
+  font-size: 13px;
+  color: var(--text-main);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.paket-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+

@@ -1,0 +1,36 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.page-header-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.page-header-description {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+
+  .page-header-title {
+    font-size: 18px;
+  }
+
+  .page-header-description {
+    font-size: 12px;
+  }
+}

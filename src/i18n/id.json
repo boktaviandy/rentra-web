@@ -1,0 +1,63 @@
+{
+  "app": {
+    "name": "Rentra",
+    "tagline": "Sistem Manajemen Rental Mobil"
+  },
+  "roles": {
+    "owner": "Owner Rental",
+    "admin": "Admin Rental"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "mobil": "Mobil",
+    "booking": "Booking",
+    "kalender": "Kalender Booking",
+    "customer": "Customer",
+    "driver": "Driver",
+    "pemasukan": "Pemasukan",
+    "pengeluaran": "Pengeluaran",
+    "laporan": "Laporan",
+    "invoice": "Invoice",
+    "pengaturan": "Pengaturan",
+    "logout": "Keluar"
+  },
+  "dashboard": {
+    "total_mobil": "Total Mobil",
+    "mobil_disewa": "Mobil Disewa",
+    "pendapatan_bulan_ini": "Pendapatan Bulan Ini",
+    "pengeluaran_bulan_ini": "Pengeluaran Bulan Ini",
+    "laba_bersih": "Laba Bersih",
+    "booking_hari_ini": "Booking Hari Ini",
+    "booking_besok": "Booking Besok",
+    "pendapatan_30_hari": "Pendapatan 30 Hari Terakhir",
+    "booking_terbaru": "Booking Terbaru",
+    "mobil_kembali_hari_ini": "Mobil Kembali Hari Ini",
+    "aktivitas_terakhir": "Aktivitas Terakhir",
+    "lihat_laporan": "Lihat Laporan"
+  },
+  "status": {
+    "tersedia": "Tersedia",
+    "disewa": "Disewa",
+    "servis": "Servis",
+    "nonaktif": "Nonaktif",
+    "draft": "Draft",
+    "booking": "Booking",
+    "berjalan": "Berjalan",
+    "selesai": "Selesai",
+    "dibatalkan": "Dibatalkan"
+  },
+  "actions": {
+    "add": "Tambah",
+    "edit": "Edit",
+    "delete": "Hapus",
+    "detail": "Detail",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "filter": "Filter",
+    "search": "Cari...",
+    "export": "Export PDF/Excel",
+    "print": "Cetak",
+    "confirm": "Konfirmasi"
+  }
+}
+

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "DRV-001",
+    "nama": "Pak Joko Susilo",
+    "noHp": "081399887766",
+    "tarif": 150000,
+    "status": "Tersedia",
+    "catatan": "Hafal jalan Jabodetabek & Jawa Barat. Sangat ramah."
+  },
+  {
+    "id": "DRV-002",
+    "nama": "Mas Agus Kurniawan",
+    "noHp": "081211223344",
+    "tarif": 175000,
+    "status": "Disewa",
+    "catatan": "Bisa mengemudi matic & manual. Pengalaman 7 tahun."
+  },
+  {
+    "id": "DRV-003",
+    "nama": "Pak Bambang Utomo",
+    "noHp": "085744556677",
+    "tarif": 150000,
+    "status": "Nonaktif",
+    "catatan": "Sedang cuti luar kota hingga bulan depan."
+  }
+]

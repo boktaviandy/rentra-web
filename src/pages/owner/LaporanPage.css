@@ -1,0 +1,77 @@
+.laporan-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.filter-bar {
+  padding: 14px 20px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+.top-performer-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-app);
+  margin-bottom: 12px;
+}
+
+.performer-rank {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--warning-light);
+  color: var(--warning);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.rank-blue {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.performer-info {
+  flex: 1;
+}
+
+.performer-val {
+  font-weight: 700;
+  font-size: 14px;
+}

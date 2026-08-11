@@ -1,0 +1,152 @@
+[
+  {
+    "id": "LOG-001",
+    "timestamp": "2026-07-27T09:45:12",
+    "action": "CREATE",
+    "module": "Booking",
+    "deskripsi": "Booking baru ditambahkan",
+    "detail": "BK-009 — Budi Santoso • Toyota Avanza Veloz • 27 Jul – 30 Jul 2026",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-002",
+    "timestamp": "2026-07-27T09:30:05",
+    "action": "UPDATE",
+    "module": "Booking",
+    "deskripsi": "Perpanjangan masa sewa",
+    "detail": "BK-007 — Tanggal kembali diubah: 25 Jul → 29 Jul 2026 (+4 hari) | Harga: Rp 1.400.000 → Rp 1.960.000",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-003",
+    "timestamp": "2026-07-27T08:15:33",
+    "action": "UPDATE",
+    "module": "Mobil",
+    "deskripsi": "Status mobil diperbarui",
+    "detail": "B 1234 RNT (Toyota Avanza Veloz) — Status: Tersedia → Disewa",
+    "user": "Admin",
+    "userName": "Siti Rahayu"
+  },
+  {
+    "id": "LOG-004",
+    "timestamp": "2026-07-26T16:50:20",
+    "action": "CREATE",
+    "module": "Pemasukan",
+    "deskripsi": "Pemasukan dicatat otomatis dari booking",
+    "detail": "BK-008 — Rp 1.050.000 • Pembayaran DP Booking Xpander Cross",
+    "user": "System",
+    "userName": "System"
+  },
+  {
+    "id": "LOG-005",
+    "timestamp": "2026-07-26T14:22:44",
+    "action": "CREATE",
+    "module": "Customer",
+    "deskripsi": "Customer baru didaftarkan",
+    "detail": "Agus Priyanto — 081234567890 • KTP: 3271xxxxxxxxxxxx",
+    "user": "Admin",
+    "userName": "Siti Rahayu"
+  },
+  {
+    "id": "LOG-006",
+    "timestamp": "2026-07-26T13:10:00",
+    "action": "DELETE",
+    "module": "Booking",
+    "deskripsi": "Booking dibatalkan",
+    "detail": "BK-006 — Dewi Kusuma • Honda Brio RS • Alasan: Customer membatalkan",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-007",
+    "timestamp": "2026-07-26T11:05:17",
+    "action": "CREATE",
+    "module": "Pengeluaran",
+    "deskripsi": "Pengeluaran dicatat",
+    "detail": "Servis Rutin B 9101 RNT (Mitsubishi Xpander Cross) — Rp 850.000 • Bengkel Resmi Mitsubishi",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-008",
+    "timestamp": "2026-07-26T09:30:00",
+    "action": "LOGIN",
+    "module": "Sistem",
+    "deskripsi": "Login ke sistem",
+    "detail": "Login berhasil sebagai Owner",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-009",
+    "timestamp": "2026-07-25T17:45:30",
+    "action": "UPDATE",
+    "module": "Mobil",
+    "deskripsi": "Data mobil diperbarui",
+    "detail": "B 3344 RNT (Toyota Fortuner VRZ) — Harga Harian: Rp 1.000.000 → Rp 1.100.000",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-010",
+    "timestamp": "2026-07-25T15:20:10",
+    "action": "CREATE",
+    "module": "Driver",
+    "deskripsi": "Driver baru ditambahkan",
+    "detail": "Rudi Hartono — SIM A: 1234567890 • Aktif",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-011",
+    "timestamp": "2026-07-25T10:00:00",
+    "action": "UPDATE",
+    "module": "Pengaturan",
+    "deskripsi": "Pengaturan bisnis diubah",
+    "detail": "Nama Bisnis: Garuda Rent → Garuda Rent Car | Nomor WhatsApp diperbarui",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-012",
+    "timestamp": "2026-07-24T14:30:00",
+    "action": "CREATE",
+    "module": "Mobil",
+    "deskripsi": "Armada baru ditambahkan",
+    "detail": "B 5566 RNT — Honda HR-V Turbo 2023 • Harga Harian: Rp 600.000",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-013",
+    "timestamp": "2026-07-24T11:15:00",
+    "action": "UPDATE",
+    "module": "Pemasukan",
+    "deskripsi": "Pemasukan diperbarui manual",
+    "detail": "PMS-004 — Jumlah: Rp 500.000 → Rp 650.000 • Catatan diperbarui",
+    "user": "Admin",
+    "userName": "Siti Rahayu"
+  },
+  {
+    "id": "LOG-014",
+    "timestamp": "2026-07-23T16:00:00",
+    "action": "DELETE",
+    "module": "Customer",
+    "deskripsi": "Customer dihapus",
+    "detail": "Eko Wahyudi — Tidak memiliki booking aktif",
+    "user": "Owner",
+    "userName": "Garuda Rent Car"
+  },
+  {
+    "id": "LOG-015",
+    "timestamp": "2026-07-23T09:00:00",
+    "action": "LOGIN",
+    "module": "Sistem",
+    "deskripsi": "Login ke sistem",
+    "detail": "Login berhasil sebagai Admin",
+    "user": "Admin",
+    "userName": "Siti Rahayu"
+  }
+]

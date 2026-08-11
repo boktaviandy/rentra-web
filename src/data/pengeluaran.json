@@ -1,0 +1,32 @@
+[
+  {
+    "id": "EXP-001",
+    "tanggal": "2026-07-22",
+    "mobilId": "MOB-003",
+    "mobilNama": "Mitsubishi Xpander Cross",
+    "nominal": 850000,
+    "kategori": "Servis",
+    "catatan": "Servis berkala 20.000 KM + Ganti Oli Shell Helix",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  },
+  {
+    "id": "EXP-002",
+    "tanggal": "2026-07-24",
+    "mobilId": "MOB-001",
+    "mobilNama": "Toyota Avanza Veloz",
+    "nominal": 350000,
+    "kategori": "BBM",
+    "catatan": "Pengisian Pertamax full tank sebelum disewa Budi",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  },
+  {
+    "id": "EXP-003",
+    "tanggal": "2026-07-15",
+    "nominal": 2500000,
+    "kategori": "Pajak",
+    "mobilId": "MOB-005",
+    "mobilNama": "Toyota Fortuner VRZ",
+    "catatan": "Perpanjangan STNK tahunan Fortuner",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  }
+]

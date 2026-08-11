@@ -1,0 +1,46 @@
+[
+  {
+    "id": "TNT-001",
+    "namaRental": "Garuda Rent Car",
+    "namaOwner": "Budi Pratama",
+    "email": "owner@garudarent.com",
+    "noHp": "081299001122",
+    "paket": "Pro",
+    "status": "Aktif",
+    "tglBergabung": "2025-11-10",
+    "tglExpired": "2026-11-10"
+  },
+  {
+    "id": "TNT-002",
+    "namaRental": "Nusantara Trans",
+    "namaOwner": "Dewi Sartika",
+    "email": "dewi@nusantaratrans.id",
+    "noHp": "085711223344",
+    "paket": "Basic",
+    "status": "Aktif",
+    "tglBergabung": "2026-01-15",
+    "tglExpired": "2027-01-15"
+  },
+  {
+    "id": "TNT-003",
+    "namaRental": "Bali Auto Rental",
+    "namaOwner": "Made Sukarta",
+    "email": "made@baliauto.com",
+    "noHp": "081988776655",
+    "paket": "Trial",
+    "status": "Trial",
+    "tglBergabung": "2026-07-15",
+    "tglExpired": "2026-07-29"
+  },
+  {
+    "id": "TNT-004",
+    "namaRental": "Bandung Jaya Express",
+    "namaOwner": "Asep Ridwan",
+    "email": "asep@bandungjaya.com",
+    "noHp": "087766554433",
+    "paket": "Basic",
+    "status": "Expired",
+    "tglBergabung": "2025-06-01",
+    "tglExpired": "2026-06-01"
+  }
+]

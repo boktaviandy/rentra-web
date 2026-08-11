@@ -1,0 +1,29 @@
+[
+  {
+    "id": "INC-001",
+    "tanggal": "2026-07-25",
+    "nominal": 1050000,
+    "kategori": "Sewa Mobil",
+    "bookingId": "BK-202607-001",
+    "catatan": "Pelunasan sewa Avanza B 1234 RNT",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  },
+  {
+    "id": "INC-002",
+    "tanggal": "2026-07-26",
+    "nominal": 237500,
+    "kategori": "Driver",
+    "bookingId": "BK-202607-002",
+    "catatan": "DP sewa Brio + Driver",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  },
+  {
+    "id": "INC-003",
+    "tanggal": "2026-07-24",
+    "nominal": 150000,
+    "kategori": "Overtime",
+    "bookingId": "BK-202607-003",
+    "catatan": "Denda keterlambatan 3 jam Innova Zenix",
+    "bukti": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=300"
+  }
+]

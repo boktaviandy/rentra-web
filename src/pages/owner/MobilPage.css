@@ -1,0 +1,224 @@
+.mobil-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobil-thumb {
+  width: 54px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.mobil-title {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.mobil-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.plat-badge {
+  font-family: monospace;
+  font-weight: 700;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.text-danger {
+  color: var(--danger) !important;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .form-row-2, .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== FOTO PICKER IN MOBIL FORM ===== */
+
+/* Button to open picker when no foto selected */
+.mobil-foto-picker-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-app);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.mobil-foto-picker-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.mobil-foto-picker-icon {
+  color: var(--primary);
+  opacity: 0.7;
+}
+
+.mobil-foto-picker-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.mobil-foto-picker-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Preview block when foto is selected */
+.mobil-foto-preview {
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.mobil-foto-preview-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.mobil-foto-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Thumbnail in table — hide broken images gracefully */
+.mobil-thumb {
+  background: var(--primary-light);
+}
+
+.mobil-thumb-placeholder {
+  width: 54px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ===== LOGO UPLOAD — Pengaturan Page ===== */
+
+.logo-upload-wrap {
+  width: 100%;
+}
+
+.logo-upload-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px 20px;
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-app);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.logo-upload-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.logo-upload-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.logo-upload-icon {
+  opacity: 0.6;
+}
+
+.logo-upload-label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.logo-upload-hint {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.logo-preview-box {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-app);
+}
+
+.logo-preview-img {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.logo-preview-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+

@@ -1,0 +1,23 @@
+.id-tag {
+  font-family: monospace;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.font-medium {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.text-success {
+  color: var(--success) !important;
+}
