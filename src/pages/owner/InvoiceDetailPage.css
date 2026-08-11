@@ -129,26 +129,123 @@
   padding-top: 20px;
 }
 
-/* Print CSS Styles */
+/* Print CSS Styles - Dedicated A5 Paper Layout */
 @media print {
-  body {
-    background: #FFFFFF !important;
-    color: #000000 !important;
+  @page {
+    size: A5;
+    margin: 8mm 10mm;
   }
-  .sidebar, .bottom-nav, .app-header, .no-print {
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11px !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .sidebar, .bottom-nav, .app-header, .no-print, header, nav, footer {
     display: none !important;
   }
+
   .main-content {
     margin-left: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
   }
+
   .page-container {
     padding: 0 !important;
   }
+
+  .invoice-detail-page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
   .invoice-paper {
     border: none !important;
     box-shadow: none !important;
     max-width: 100% !important;
     padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .company-name {
+    font-size: 16px !important;
+  }
+
+  .company-sub {
+    font-size: 10px !important;
+  }
+
+  .inv-title {
+    font-size: 20px !important;
+  }
+
+  .inv-num {
+    font-size: 12px !important;
+  }
+
+  .inv-date {
+    font-size: 10px !important;
+  }
+
+  .inv-divider {
+    margin: 12px 0 !important;
+  }
+
+  .invoice-info-grid {
+    gap: 16px !important;
+  }
+
+  .inv-label {
+    font-size: 10px !important;
+  }
+
+  .inv-val-title {
+    font-size: 13px !important;
+  }
+
+  .inv-val-sub {
+    font-size: 11px !important;
+  }
+
+  .table-container {
+    margin-top: 14px !important;
+  }
+
+  .table th, .table td {
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .invoice-summary-grid {
+    gap: 16px !important;
+    margin-top: 14px !important;
+  }
+
+  .qris-box {
+    padding: 10px !important;
+  }
+
+  .qris-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .summary-calculations {
+    font-size: 12px !important;
+  }
+
+  .total-row {
+    font-size: 15px !important;
+  }
+
+  .invoice-footer-note {
+    margin-top: 20px !important;
+    padding-top: 12px !important;
+    font-size: 10px !important;
   }
 }

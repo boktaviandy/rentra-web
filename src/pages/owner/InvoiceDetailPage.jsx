@@ -63,7 +63,7 @@ export function InvoiceDetailPage() {
         </div>
 
         <button className="btn btn-primary" onClick={handlePrint}>
-          <Printer size={16} /> Cetak Invoice / Download PDF
+          <Printer size={16} /> Cetak Invoice / Download PDF (A5)
         </button>
       </div>
 
