@@ -165,7 +165,7 @@ export function MobilPage() {
     },
     {
       header: 'Harga Harian',
-      cell: (row) => `Rp ${Number(row.hargaHarian).toLocaleString('id-ID')}`
+      cell: (row) => `Rp ${Number(row.hargaHarian || row.hargaSewa || 0).toLocaleString('id-ID')}`
     },
     {
       header: 'Status',

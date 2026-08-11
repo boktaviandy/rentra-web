@@ -177,7 +177,7 @@ export function BookingPage() {
     const mobilObj = mobilData.find((m) => m.id === mobilId);
     const driverObj = driverData.find((d) => d.id === driverId);
 
-    const hargaHarianMobil = mobilObj ? Number(mobilObj.hargaHarian) || 0 : 0;
+    const hargaHarianMobil = mobilObj ? Number(mobilObj.hargaHarian || mobilObj.hargaSewa || 0) : 0;
     const tarifDriver = driverObj ? Number(driverObj.tarif) || 0 : 0;
 
     return {
@@ -582,7 +582,7 @@ export function BookingPage() {
                   : availableMobilList
                 ).map((m) => (
                   <option key={m.id} value={m.id}>
-                    {m.nama} ({m.plat}) - Rp {Number(m.hargaHarian).toLocaleString('id-ID')}/hr
+                    {m.nama} ({m.plat}) - Rp {Number(m.hargaHarian || m.hargaSewa || 0).toLocaleString('id-ID')}/hr
                   </option>
                 ))}
               </select>

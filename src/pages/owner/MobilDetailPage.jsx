@@ -64,7 +64,7 @@ export function MobilDetailPage() {
           <div className="price-grid">
             <div className="price-item">
               <span className="price-label">Harian</span>
-              <span className="price-val">Rp {Number(mobil.hargaHarian).toLocaleString('id-ID')}</span>
+              <span className="price-val">Rp {Number(mobil.hargaHarian || mobil.hargaSewa || 0).toLocaleString('id-ID')}</span>
             </div>
             <div className="price-item">
               <span className="price-label">Mingguan</span>
