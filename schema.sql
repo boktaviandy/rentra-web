@@ -53,15 +53,10 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert Default Admin Account
-INSERT INTO users (id, nama, email, "passwordHash", role)
-VALUES (
-    uuid_generate_v4(),
-    'Admin Rentra',
-    'admin@rentra.com',
-    'admin123',
-    'owner'
-) ON CONFLICT (email) DO NOTHING;
+-- Insert Default Admin Account (selalu reset passwordHash ke admin123 agar tidak lockout)
+INSERT INTO users (nama, email, "passwordHash", role)
+VALUES ('Admin Rentra', 'admin@rentra.com', 'admin123', 'owner')
+ON CONFLICT (email) DO UPDATE SET "passwordHash" = 'admin123', role = 'owner';
 
 -- 4. MOBIL (Data Fleet / Armada Mobil Rental)
 CREATE TABLE IF NOT EXISTS mobil (
