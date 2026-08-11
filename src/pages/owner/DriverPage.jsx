@@ -12,7 +12,7 @@ export function DriverPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: driverList, setData: setDriverList, isLoading } = useTenantStore('driver');
+  const { data: driverList, addItem: addDriver, updateItem: updateDriver, deleteItem: deleteDriver, isLoading } = useTenantStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
 
@@ -51,12 +51,12 @@ export function DriverPage() {
       variant: 'danger'
     });
     if (ok) {
-      setDriverList(driverList.filter((d) => d.id !== id));
+      await deleteDriver(id);
       toast.success('Driver Dihapus', `Data driver ${driver?.nama || ''} berhasil dihapus.`);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const payload = {
       ...formData,
@@ -64,16 +64,14 @@ export function DriverPage() {
     };
 
     if (editingDriver) {
-      setDriverList(
-        driverList.map((d) => (d.id === editingDriver.id ? { ...payload, id: d.id } : d))
-      );
+      await updateDriver(editingDriver.id, { ...payload, id: editingDriver.id });
       toast.success('Driver Diperbarui', `Informasi driver ${formData.nama} berhasil diperbarui.`);
     } else {
       const newDriver = {
         ...payload,
         id: `DRV-${String(Date.now()).slice(-4)}`
       };
-      setDriverList([newDriver, ...driverList]);
+      await addDriver(newDriver);
       toast.success('Driver Ditambahkan', `Driver ${newDriver.nama} siap bertugas.`);
     }
     setIsModalOpen(false);

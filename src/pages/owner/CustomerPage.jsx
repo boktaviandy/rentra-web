@@ -13,7 +13,7 @@ export function CustomerPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: customerList, setData: setCustomerList, isLoading } = useTenantStore('customer');
+  const { data: customerList, addItem: addCustomer, updateItem: updateCustomer, deleteItem: deleteCustomer, isLoading } = useTenantStore('customer');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
@@ -58,17 +58,15 @@ export function CustomerPage() {
       variant: 'danger'
     });
     if (ok) {
-      setCustomerList(customerList.filter((c) => c.id !== id));
+      await deleteCustomer(id);
       toast.success('Pelanggan Dihapus', `Data pelanggan ${cust?.nama || ''} berhasil dihapus.`);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (editingCustomer) {
-      setCustomerList(
-        customerList.map((c) => (c.id === editingCustomer.id ? { ...formData, id: c.id } : c))
-      );
+      await updateCustomer(editingCustomer.id, { ...formData, id: editingCustomer.id });
       toast.success('Customer Diperbarui', `Data ${formData.nama} berhasil diperbarui.`);
     } else {
       const newCust = {
@@ -76,7 +74,7 @@ export function CustomerPage() {
         id: `CUST-${String(Date.now()).slice(-4)}`,
         totalBooking: 0
       };
-      setCustomerList([newCust, ...customerList]);
+      await addCustomer(newCust);
       toast.success('Customer Ditambahkan', `Pelanggan ${newCust.nama} berhasil didaftarkan.`);
     }
     setIsModalOpen(false);

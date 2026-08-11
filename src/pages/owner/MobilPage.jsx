@@ -16,7 +16,7 @@ export function MobilPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const { data: mobilList, setData: setMobilList } = useTenantStore('mobil');
+  const { data: mobilList, addItem: addMobil, updateItem: updateMobil, deleteItem: deleteMobil } = useTenantStore('mobil');
   const { data: bookingList } = useTenantStore('booking');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMobil, setEditingMobil] = useState(null);
@@ -95,7 +95,7 @@ export function MobilPage() {
       variant: 'danger'
     });
     if (ok) {
-      setMobilList(mobilList.filter((m) => m.id !== id));
+      await deleteMobil(id);
       toast.success('Mobil Dihapus', `Data mobil ${mobil?.nama || ''} berhasil dihapus.`);
     }
   };
@@ -111,7 +111,7 @@ export function MobilPage() {
     };
 
     if (editingMobil) {
-      setMobilList(mobilList.map((m) => (m.id === editingMobil.id ? { ...payload, id: m.id } : m)));
+      await updateMobil(editingMobil.id, { ...payload, id: editingMobil.id });
       toast.success('Data Diperbarui', `Informasi ${formData.nama} berhasil diperbarui.`);
     } else {
       const newMobil = {
@@ -120,7 +120,7 @@ export function MobilPage() {
         totalHariDisewa: 0,
         totalPendapatan: 0
       };
-      setMobilList([newMobil, ...mobilList]);
+      await addMobil(newMobil);
       toast.success('Mobil Ditambahkan', `Unit ${newMobil.nama} (${newMobil.plat}) berhasil masuk ke garasi.`);
     }
     setIsModalOpen(false);
