@@ -58,6 +58,24 @@ INSERT INTO users (nama, email, "passwordHash", role)
 VALUES ('Admin Rentra', 'admin@rentra.com', 'admin123', 'owner')
 ON CONFLICT (email) DO UPDATE SET "passwordHash" = 'admin123', role = 'owner';
 
+-- Fungsi Login (SECURITY DEFINER = bypass RLS, pakai hak postgres)
+CREATE OR REPLACE FUNCTION authenticate_user(p_email TEXT, p_password TEXT)
+RETURNS TABLE(id UUID, nama TEXT, email TEXT, role TEXT, "noHp" TEXT, avatar TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT u.id, u.nama, u.email, u.role, u."noHp", u.avatar
+  FROM users u
+  WHERE u.email ILIKE p_email
+    AND u."passwordHash" = p_password;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION authenticate_user TO anon;
+GRANT EXECUTE ON FUNCTION authenticate_user TO authenticated;
+
 -- 4. MOBIL (Data Fleet / Armada Mobil Rental)
 CREATE TABLE IF NOT EXISTS mobil (
     id VARCHAR(100) PRIMARY KEY,

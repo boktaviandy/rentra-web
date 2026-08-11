@@ -31,26 +31,21 @@ export function useAuth() {
     setAuthError('');
 
     try {
-      // Step 1: Find user by email
-      const { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .ilike('email', email.trim())
-        .maybeSingle();
+      // Gunakan RPC function (SECURITY DEFINER) agar bypass RLS & permission issues
+      const { data, error } = await supabase.rpc('authenticate_user', {
+        p_email: email.trim(),
+        p_password: password
+      });
 
       if (error) {
+        console.error('Login RPC error:', error);
         setAuthError('Terjadi kesalahan saat menghubungi server. Coba lagi.');
         return { success: false };
       }
 
-      if (!user) {
-        setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
-        return { success: false };
-      }
+      const user = data?.[0] ?? null;
 
-      // Step 2: Compare password in JavaScript
-      const storedPassword = user.passwordHash ?? user['passwordHash'] ?? user.password_hash ?? '';
-      if (storedPassword !== password) {
+      if (!user) {
         setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
         return { success: false };
       }
@@ -61,9 +56,9 @@ export function useAuth() {
         nama: user.nama,
         email: user.email,
         role: user.role,
-        noHp: user.noHp || user['noHp'] || '',
+        noHp: user.noHp || '',
         avatar: user.avatar || '',
-        namaRental: user.namaRental || 'Rentra',
+        namaRental: 'Rentra',
         namaOwner: user.nama,
       };
 
