@@ -40,11 +40,32 @@ export function DashboardPage() {
   }).length;
   const occupancyRate = totalMobil > 0 ? Math.round((mobilDisewa / totalMobil) * 100) : 0;
 
-  const totalPemasukan = pemasukanData.reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);
-  const totalPengeluaran = pengeluaranData.reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);
-  const labaBersih = totalPemasukan - totalPengeluaran;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  const currentMonthLabel = `${monthNames[currentMonth]} ${currentYear}`;
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const isCurrentMonth = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    return !isNaN(d.getTime()) && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+  };
+
+  const totalPemasukanBulanIni = pemasukanData
+    .filter((p) => isCurrentMonth(p.tanggal || p.created_at))
+    .reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);
+
+  const totalPengeluaranBulanIni = pengeluaranData
+    .filter((p) => isCurrentMonth(p.tanggal || p.created_at))
+    .reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);
+
+  const labaBersihBulanIni = totalPemasukanBulanIni - totalPengeluaranBulanIni;
+
+  const todayStr = now.toISOString().slice(0, 10);
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().slice(0, 10);
@@ -89,24 +110,24 @@ export function DashboardPage() {
         />
         <StatCard
           title={t('dashboard.pendapatan_bulan_ini')}
-          value={`Rp ${totalPemasukan.toLocaleString('id-ID')}`}
+          value={`Rp ${totalPemasukanBulanIni.toLocaleString('id-ID')}`}
           icon={TrendingUp}
           color="success"
-          subtext="Pemasukan tercatat"
+          subtext={currentMonthLabel}
         />
         <StatCard
           title={t('dashboard.pengeluaran_bulan_ini')}
-          value={`Rp ${totalPengeluaran.toLocaleString('id-ID')}`}
+          value={`Rp ${totalPengeluaranBulanIni.toLocaleString('id-ID')}`}
           icon={TrendingDown}
           color="danger"
-          subtext="Servis & operasional"
+          subtext={currentMonthLabel}
         />
         <StatCard
           title={t('dashboard.laba_bersih')}
-          value={`Rp ${labaBersih.toLocaleString('id-ID')}`}
+          value={`Rp ${labaBersihBulanIni.toLocaleString('id-ID')}`}
           icon={DollarSign}
           color="warning"
-          subtext="Laba bersih saat ini"
+          subtext={currentMonthLabel}
         />
         <StatCard
           title={t('dashboard.booking_hari_ini')}
