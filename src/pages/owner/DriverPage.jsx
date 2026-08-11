@@ -12,7 +12,7 @@ export function DriverPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: driverList, setData: setDriverList } = useTenantStore('driver');
+  const { data: driverList, setData: setDriverList, isLoading } = useTenantStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
 
@@ -144,6 +144,7 @@ export function DriverPage() {
         searchKey="nama"
         searchPlaceholder="Cari nama driver..."
         pageSize={5}
+        isLoading={isLoading}
       />
 
       <Modal

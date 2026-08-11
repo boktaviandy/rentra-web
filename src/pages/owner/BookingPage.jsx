@@ -15,7 +15,7 @@ export function BookingPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: bookingList, setData: setBookingList } = useTenantStore('booking');
+  const { data: bookingList, setData: setBookingList, isLoading } = useTenantStore('booking');
   const { data: mobilData, setData: setMobilData } = useTenantStore('mobil');
   const { data: customerData } = useTenantStore('customer');
   const { data: driverData } = useTenantStore('driver');
@@ -523,6 +523,7 @@ export function BookingPage() {
         filterOptions={filterOptions}
         filterKey="status"
         pageSize={5}
+        isLoading={isLoading}
       />
 
       {/* Modal Form Booking / Perpanjang */}

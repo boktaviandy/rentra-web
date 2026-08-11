@@ -10,7 +10,7 @@ import { useTenantStore } from '../../hooks/useTenantStore';
 export function InvoicePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: bookingList } = useTenantStore('booking');
+  const { data: bookingList, isLoading } = useTenantStore('booking');
 
   const columns = [
     {
@@ -65,6 +65,7 @@ export function InvoicePage() {
         searchKey="customerNama"
         searchPlaceholder="Cari nomor invoice atau pelanggan..."
         pageSize={10}
+        isLoading={isLoading}
       />
     </div>
   );

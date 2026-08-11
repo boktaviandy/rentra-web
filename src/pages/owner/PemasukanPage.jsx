@@ -12,7 +12,7 @@ export function PemasukanPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pemasukanList, setData: setPemasukanList } = useTenantStore('pemasukan');
+  const { data: pemasukanList, setData: setPemasukanList, isLoading } = useTenantStore('pemasukan');
   const { data: bookingData } = useTenantStore('booking');
   const { data: driverData } = useTenantStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -177,6 +177,7 @@ export function PemasukanPage() {
         searchKey="kategori"
         searchPlaceholder="Cari kategori atau catatan..."
         pageSize={5}
+        isLoading={isLoading}
       />
 
       <Modal

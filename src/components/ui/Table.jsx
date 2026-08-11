@@ -10,7 +10,8 @@ export function Table({
   searchKey = "nama",
   filterOptions = null,
   filterKey = "status",
-  pageSize = 5
+  pageSize = 5,
+  isLoading = false
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterValue, setFilterValue] = useState('ALL');
@@ -87,7 +88,17 @@ export function Table({
             </tr>
           </thead>
           <tbody>
-            {currentData.length > 0 ? (
+            {isLoading ? (
+              [1, 2, 3].map((n) => (
+                <tr key={`skeleton-${n}`} className="table-skeleton-row">
+                  {columns.map((_, colIdx) => (
+                    <td key={colIdx}>
+                      <div className="table-skeleton-cell"></div>
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : currentData.length > 0 ? (
               currentData.map((row, rowIdx) => (
                 <tr key={row.id || rowIdx}>
                   {columns.map((col, colIdx) => (

@@ -13,7 +13,7 @@ export function CustomerPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: customerList, setData: setCustomerList } = useTenantStore('customer');
+  const { data: customerList, setData: setCustomerList, isLoading } = useTenantStore('customer');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 
@@ -166,6 +166,7 @@ export function CustomerPage() {
         searchKey="nama"
         searchPlaceholder="Cari nama atau nomor HP customer..."
         pageSize={5}
+        isLoading={isLoading}
       />
 
       <Modal

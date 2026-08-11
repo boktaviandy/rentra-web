@@ -11,7 +11,7 @@ export function PengeluaranPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pengeluaranList, setData: setPengeluaranList } = useTenantStore('pengeluaran');
+  const { data: pengeluaranList, setData: setPengeluaranList, isLoading } = useTenantStore('pengeluaran');
   const { data: mobilData } = useTenantStore('mobil');
   const { data: bookingData } = useTenantStore('booking');
   const { data: driverData } = useTenantStore('driver');
@@ -176,6 +176,7 @@ export function PengeluaranPage() {
         searchKey="kategori"
         searchPlaceholder="Cari kategori pengeluaran..."
         pageSize={5}
+        isLoading={isLoading}
       />
 
       <Modal
