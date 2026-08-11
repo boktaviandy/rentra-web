@@ -90,8 +90,11 @@ CREATE TABLE IF NOT EXISTS customers (
     "noHp" VARCHAR(50) NOT NULL,
     email VARCHAR(255),
     alamat TEXT,
-    nik VARCHAR(50),
+    "noKtp" VARCHAR(50),
+    "noSim" VARCHAR(50),
     "fotoKtp" TEXT DEFAULT '',
+    "fotoSim" TEXT DEFAULT '',
+    catatan TEXT DEFAULT '',
     status VARCHAR(50) DEFAULT 'Aktif',
     "totalBooking" INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -107,6 +110,7 @@ CREATE TABLE IF NOT EXISTS drivers (
     tarif NUMERIC(15, 2) DEFAULT 0,
     status VARCHAR(50) DEFAULT 'Tersedia',
     foto TEXT DEFAULT '',
+    catatan TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

@@ -11,7 +11,7 @@ export function PengeluaranPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pengeluaranList, setData: setPengeluaranList, isLoading } = useTenantStore('pengeluaran');
+  const { data: pengeluaranList, addItem: addPengeluaran, deleteItem: deletePengeluaran, setData: setPengeluaranList, isLoading } = useTenantStore('pengeluaran');
   const { data: mobilData } = useTenantStore('mobil');
   const { data: bookingData } = useTenantStore('booking');
   const { data: driverData } = useTenantStore('driver');
@@ -88,12 +88,12 @@ export function PengeluaranPage() {
       variant: 'danger'
     });
     if (ok) {
-      setPengeluaranList(pengeluaranList.filter((item) => item.id !== id));
+      await deletePengeluaran(id);
       toast.success('Pengeluaran Dihapus', 'Data pengeluaran berhasil dihapus.');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const mobilObj = mobilData.find((m) => m.id === formData.mobilId);
     const newExp = {
@@ -102,7 +102,7 @@ export function PengeluaranPage() {
       mobilNama: mobilObj ? mobilObj.nama : 'Umum / Operasional',
       nominal: Number(formData.nominal) || 0
     };
-    setPengeluaranList([newExp, ...pengeluaranList]);
+    await addPengeluaran(newExp);
     toast.success('Pengeluaran Dicatat', `Biaya Rp ${Number(newExp.nominal).toLocaleString('id-ID')} (${newExp.kategori}) berhasil disimpan.`);
     setIsModalOpen(false);
     setFormData({

@@ -12,7 +12,7 @@ export function PemasukanPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pemasukanList, setData: setPemasukanList, isLoading } = useTenantStore('pemasukan');
+  const { data: pemasukanList, addItem: addPemasukan, deleteItem: deletePemasukan, setData: setPemasukanList, isLoading } = useTenantStore('pemasukan');
   const { data: bookingData } = useTenantStore('booking');
   const { data: driverData } = useTenantStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,19 +91,19 @@ export function PemasukanPage() {
       variant: 'danger'
     });
     if (ok) {
-      setPemasukanList(pemasukanList.filter((item) => item.id !== id));
+      await deletePemasukan(id);
       toast.success('Pemasukan Dihapus', 'Data transaksi berhasil dihapus.');
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newInc = {
       ...formData,
       id: `INC-${String(Date.now()).slice(-4)}`,
       nominal: Number(formData.nominal) || 0
     };
-    setPemasukanList([newInc, ...pemasukanList]);
+    await addPemasukan(newInc);
     toast.success('Pemasukan Dicatat', `Pemasukan Rp ${Number(newInc.nominal).toLocaleString('id-ID')} (${newInc.kategori}) berhasil disimpan.`);
     setIsModalOpen(false);
     setFormData({
