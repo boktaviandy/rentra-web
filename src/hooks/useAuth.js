@@ -38,7 +38,13 @@ export function useAuth() {
         .ilike('email', email.trim())
         .maybeSingle();
 
+      // DEBUG: Log response to browser console
+      console.log('[AUTH DEBUG] Supabase response:', { user, error });
+      console.log('[AUTH DEBUG] User keys:', user ? Object.keys(user) : 'null');
+      console.log('[AUTH DEBUG] passwordHash value:', user?.passwordHash, '| password_hash:', user?.password_hash);
+
       if (error) {
+        console.error('[AUTH DEBUG] Error detail:', error);
         setAuthError('Terjadi kesalahan saat menghubungi server. Coba lagi.');
         return { success: false };
       }
@@ -49,8 +55,8 @@ export function useAuth() {
       }
 
       // Step 2: Compare password in JavaScript
-      // Supabase returns camelCase keys matching the column name defined in schema
       const storedPassword = user.passwordHash ?? user['passwordHash'] ?? user.password_hash ?? '';
+      console.log('[AUTH DEBUG] storedPassword:', storedPassword, '| inputPassword:', password, '| match:', storedPassword === password);
       if (storedPassword !== password) {
         setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
         return { success: false };
