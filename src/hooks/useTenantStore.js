@@ -163,16 +163,21 @@ export function useTenantStore(entityKey) {
 
   const updateItem = useCallback(
     async (id, updatedFields) => {
-      updateDataState((prev) => prev.map((d) => (d.id === id ? { ...d, ...updatedFields } : d)));
+      updateDataState((prev) => {
+        const exists = prev.some((d) => String(d.id) === String(id));
+        if (exists) {
+          return prev.map((d) => (String(d.id) === String(id) ? { ...d, ...updatedFields } : d));
+        }
+        return [{ id, ...updatedFields }, ...prev];
+      });
 
       try {
-        const payload = sanitizePayload(tableName, updatedFields);
+        const payload = sanitizePayload(tableName, { id, ...updatedFields });
         const { error } = await supabase
           .from(tableName)
-          .update(payload)
-          .eq('id', id);
+          .upsert([payload]);
 
-        if (error) console.error(`Supabase Update Error (${tableName}):`, error);
+        if (error) console.error(`Supabase Upsert Error (${tableName}):`, error);
       } catch (e) {
         console.error(e);
       }

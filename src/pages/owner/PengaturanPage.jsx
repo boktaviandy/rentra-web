@@ -44,7 +44,7 @@ function compressImage(file, maxSize = 256) {
 export function PengaturanPage() {
   const { t } = useTranslation();
   const { currentUser, updateProfile } = useAuth();
-  const { data: storedSettings, updateItem: updateStoredSettings } = useTenantStore('settings');
+  const { data: storedSettings, setData: setStoredSettings } = useTenantStore('settings');
   const { toast, confirm } = useToast();
 
   const fileRef = useRef(null);
@@ -108,9 +108,9 @@ export function PengaturanPage() {
     e.preventDefault();
     const updatedSettings = { ...settings, id: 1 };
     
-    // Save to Supabase
-    if (updateStoredSettings) {
-      await updateStoredSettings(1, updatedSettings);
+    // Save to local cache + Supabase table settings
+    if (setStoredSettings) {
+      await setStoredSettings([updatedSettings]);
     }
 
     updateProfile({
@@ -126,7 +126,7 @@ export function PengaturanPage() {
       instruksiPembayaran: settings.instruksiPembayaran,
     });
 
-    toast.success('Pengaturan Disimpan', 'Identitas rental dan rincian rekening invoice berhasil diperbarui di database!');
+    toast.success('Pengaturan Disimpan', 'Identitas rental dan rincian rekening invoice berhasil diperbarui!');
   };
 
 

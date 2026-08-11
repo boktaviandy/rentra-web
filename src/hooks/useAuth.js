@@ -76,16 +76,33 @@ export function useAuth() {
         return { success: false };
       }
 
+      const savedSettings = (() => {
+        try {
+          const raw = localStorage.getItem('rentra_local_settings');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed[0]) return parsed[0];
+          }
+        } catch (e) {}
+        return null;
+      })();
+
       // Store session
       const sessionData = {
         id: foundUser.id,
-        nama: foundUser.nama,
+        nama: savedSettings?.namaOwner || foundUser.nama,
         email: foundUser.email,
         role: foundUser.role || 'owner',
-        noHp: foundUser.noHp || '',
+        noHp: savedSettings?.noHp || foundUser.noHp || '',
         avatar: foundUser.avatar || '',
-        namaRental: 'Rentra',
-        namaOwner: foundUser.nama,
+        namaRental: savedSettings?.namaRental || 'Garuda Rent Car',
+        namaOwner: savedSettings?.namaOwner || foundUser.nama,
+        alamat: savedSettings?.alamat || '',
+        logo: savedSettings?.logo || '',
+        namaBank: savedSettings?.namaBank || 'BCA',
+        nomorRekening: savedSettings?.nomorRekening || '',
+        atasNamaRekening: savedSettings?.atasNamaRekening || '',
+        instruksiPembayaran: savedSettings?.instruksiPembayaran || '',
       };
 
       localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
@@ -97,15 +114,32 @@ export function useAuth() {
 
       // Fallback check on unexpected exception
       if (cleanEmail === 'admin@rentra.com' && password === 'admin123') {
+        const savedSettings = (() => {
+          try {
+            const raw = localStorage.getItem('rentra_local_settings');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed) && parsed[0]) return parsed[0];
+            }
+          } catch (err) {}
+          return null;
+        })();
+
         const sessionData = {
           id: 'admin-default-id',
-          nama: 'Admin Rentra',
+          nama: savedSettings?.namaOwner || 'Admin Rentra',
           email: 'admin@rentra.com',
           role: 'owner',
-          noHp: '0812-9900-1122',
+          noHp: savedSettings?.noHp || '0812-9900-1122',
           avatar: '',
-          namaRental: 'Rentra',
-          namaOwner: 'Admin Rentra'
+          namaRental: savedSettings?.namaRental || 'Garuda Rent Car',
+          namaOwner: savedSettings?.namaOwner || 'Admin Rentra',
+          alamat: savedSettings?.alamat || '',
+          logo: savedSettings?.logo || '',
+          namaBank: savedSettings?.namaBank || 'BCA',
+          nomorRekening: savedSettings?.nomorRekening || '',
+          atasNamaRekening: savedSettings?.atasNamaRekening || '',
+          instruksiPembayaran: savedSettings?.instruksiPembayaran || '',
         };
         localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
         setCurrentUser(sessionData);
