@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS settings (
     "zonaWaktu" VARCHAR(100) DEFAULT 'Asia/Jakarta (WIB)',
     "mataUang" VARCHAR(50) DEFAULT 'IDR (Rp)',
     logo TEXT DEFAULT '',
+    "namaBank" VARCHAR(100) DEFAULT 'BCA',
+    "nomorRekening" VARCHAR(100) DEFAULT '123-456-7890',
+    "atasNamaRekening" VARCHAR(255) DEFAULT 'Garuda Rent Car',
+    "instruksiPembayaran" TEXT DEFAULT 'Mendukung Transfer Bank BCA, Mandiri, QRIS & Tunai',
+    "syaratKetentuan" TEXT DEFAULT '',
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );

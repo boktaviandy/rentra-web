@@ -90,13 +90,20 @@ export function useTenantStore(entityKey) {
           dbData.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
         }
 
-        // Merge DB data with local cache items that might not have reached DB yet
+        // Merge DB data with local cache items
         const local = getLocalCache(entityKey) || [];
-        const dbIds = new Set(dbData.map((d) => d.id));
-        const pendingLocal = local.filter((l) => l.id && !dbIds.has(l.id));
 
-        const merged = [...dbData, ...pendingLocal];
-        updateDataState(merged);
+        if (entityKey === 'settings' && local.length > 0 && local[0]?.namaRental) {
+          const localSetting = local[0];
+          const dbSetting = dbData[0] || {};
+          const mergedSetting = { ...dbSetting, ...localSetting };
+          updateDataState([mergedSetting]);
+        } else {
+          const dbIds = new Set(dbData.map((d) => d.id));
+          const pendingLocal = local.filter((l) => l.id && !dbIds.has(l.id));
+          const merged = [...dbData, ...pendingLocal];
+          updateDataState(merged);
+        }
       }
     } catch (e) {
       console.error(`Failed to load ${entityKey}`, e);
