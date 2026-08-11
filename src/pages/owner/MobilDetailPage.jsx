@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
-import { ArrowLeft, Calendar, DollarSign, Wrench, Clock, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, Wrench, Clock, FileText, Car } from 'lucide-react';
 import { useTenantStore } from '../../hooks/useTenantStore';
 import './MobilDetailPage.css';
 
@@ -58,7 +58,22 @@ export function MobilDetailPage() {
       {/* Main Info Card */}
       <div className="mobil-hero-card card">
         <div className="hero-img-box">
-          <img src={mobil.foto} alt={mobil.nama} className="hero-img" />
+          {mobil.foto ? (
+            <img
+              src={mobil.foto}
+              alt={mobil.nama}
+              className="hero-img"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                const sibling = e.target.parentElement.querySelector('.hero-img-placeholder');
+                if (sibling) sibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div className={`hero-img-placeholder ${mobil.foto ? 'hidden-placeholder' : ''}`}>
+            <Car size={44} className="hero-placeholder-icon" />
+            <span>Foto Belum Ditambahkan</span>
+          </div>
         </div>
         <div className="hero-details">
           <div className="price-grid">
