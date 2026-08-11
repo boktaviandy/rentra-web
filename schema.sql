@@ -9,6 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ==============================================================================
 -- DROP EXISTING TABLES (untuk clean install / re-run schema)
+-- CATATAN: Tabel users & settings TIDAK dihapus agar akun & pengaturan tidak hilang
 -- Hapus dari bawah ke atas mengikuti urutan foreign key dependency
 -- ==============================================================================
 DROP TABLE IF EXISTS audit_logs CASCADE;
@@ -18,8 +19,6 @@ DROP TABLE IF EXISTS bookings CASCADE;
 DROP TABLE IF EXISTS drivers CASCADE;
 DROP TABLE IF EXISTS customers CASCADE;
 DROP TABLE IF EXISTS mobil CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS settings CASCADE;
 
 -- 2. SETTINGS (Profil Bisnis Rental - Single Record)
 CREATE TABLE IF NOT EXISTS settings (
