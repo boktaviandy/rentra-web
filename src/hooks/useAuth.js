@@ -39,20 +39,19 @@ export function useAuth() {
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase login error:', error);
-        setAuthError(`Server error: ${error.message || error.code || 'Unknown error'}`);
+        setAuthError('Terjadi kesalahan saat menghubungi server. Coba lagi.');
         return { success: false };
       }
 
       if (!user) {
-        setAuthError('Akun tidak ditemukan. Pastikan email benar dan sudah terdaftar di database.');
+        setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
         return { success: false };
       }
 
       // Step 2: Compare password in JavaScript
       const storedPassword = user.passwordHash ?? user['passwordHash'] ?? user.password_hash ?? '';
       if (storedPassword !== password) {
-        setAuthError(`Kata sandi salah. (Debug: hash stored = "${storedPassword?.slice(0,5)}...")`);
+        setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
         return { success: false };
       }
 
