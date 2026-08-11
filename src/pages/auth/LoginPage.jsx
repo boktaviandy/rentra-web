@@ -2,11 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CarFront, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useTenantStore } from '../../hooks/useTenantStore';
 import './AuthPage.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { login, isLoading, authError } = useAuth();
+  const { data: tenantSettings } = useTenantStore('settings');
+
+  const activeSettings = Array.isArray(tenantSettings) && tenantSettings[0] ? tenantSettings[0] : {};
+  const rentalLogo = activeSettings.logo || null;
+  const namaRental = activeSettings.namaRental || 'Rentra';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,10 +40,18 @@ export function LoginPage() {
     <div className="auth-page">
       <div className="auth-card card">
         <div className="auth-header">
-          <div className="brand-logo" style={{ margin: '0 auto 12px auto' }}>
-            <CarFront size={28} />
+          <div className="brand-logo" style={{ margin: '0 auto 12px auto', width: '56px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            {rentalLogo ? (
+              <img
+                src={rentalLogo}
+                alt={namaRental}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '12px' }}
+              />
+            ) : (
+              <CarFront size={28} />
+            )}
           </div>
-          <h2>Rentra</h2>
+          <h2>{namaRental}</h2>
           <p className="subtext">Sistem Manajemen Rental Mobil</p>
         </div>
 
