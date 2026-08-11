@@ -44,7 +44,7 @@ function compressImage(file, maxSize = 256) {
 export function PengaturanPage() {
   const { t } = useTranslation();
   const { currentUser, updateProfile } = useAuth();
-  const { data: storedSettings, setData: saveStoredSettings } = useTenantStore('settings');
+  const { data: storedSettings, updateItem: updateStoredSettings } = useTenantStore('settings');
   const { toast, confirm } = useToast();
 
   const fileRef = useRef(null);
@@ -53,12 +53,10 @@ export function PengaturanPage() {
   const [settings, setSettings] = useState(() => {
     const fromStore = Array.isArray(storedSettings) && storedSettings[0] ? storedSettings[0] : {};
     return {
-      username: fromStore.username || currentUser?.username || 'admin',
-      password: fromStore.password || currentUser?.password || 'password123',
       namaRental: fromStore.namaRental || currentUser?.namaRental || 'Garuda Rent Car',
       namaOwner: fromStore.namaOwner || currentUser?.namaOwner || 'Budi Pratama',
       noHp: fromStore.noHp || currentUser?.noHp || '0812-9900-1122',
-      email: fromStore.email || currentUser?.email || 'owner@garudarent.com',
+      email: fromStore.email || currentUser?.email || 'admin@rentra.com',
       alamat: fromStore.alamat || currentUser?.alamat || 'Jl. Sudirman No. 100, Jakarta Selatan',
       zonaWaktu: fromStore.zonaWaktu || 'Asia/Jakarta (WIB)',
       mataUang: fromStore.mataUang || 'IDR (Rp)',
@@ -106,14 +104,16 @@ export function PengaturanPage() {
     setSettings((prev) => ({ ...prev, logo: '' }));
   };
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    const updatedSettings = { ...settings };
-    saveStoredSettings([updatedSettings]);
+    const updatedSettings = { ...settings, id: 1 };
+    
+    // Save to Supabase
+    if (updateStoredSettings) {
+      await updateStoredSettings(1, updatedSettings);
+    }
 
     updateProfile({
-      username: settings.username,
-      password: settings.password,
       namaRental: settings.namaRental,
       namaOwner: settings.namaOwner,
       noHp: settings.noHp,
@@ -126,7 +126,7 @@ export function PengaturanPage() {
       instruksiPembayaran: settings.instruksiPembayaran,
     });
 
-    toast.success('Pengaturan Disimpan', 'Identitas rental, akun login, dan rincian rekening invoice berhasil diperbarui!');
+    toast.success('Pengaturan Disimpan', 'Identitas rental dan rincian rekening invoice berhasil diperbarui di database!');
   };
 
 
@@ -134,42 +134,12 @@ export function PengaturanPage() {
     <div className="pengaturan-page">
       <PageHeader
         title={t('nav.pengaturan')}
-        description="Konfigurasi identitas rental, username akun login, kontak, dan zona waktu."
+        description="Konfigurasi identitas rental, kontak, rekening, dan profil bisnis."
       />
 
       <div className="card" style={{ maxWidth: '640px' }}>
         <form onSubmit={handleSave} className="pengaturan-form">
-          <div className="form-row-2">
-            <div className="form-group">
-              <label className="form-label">Username Akun (Untuk Login)</label>
-              <input
-                type="text"
-                className="form-input"
-                required
-                placeholder="admin"
-                value={settings.username || ''}
-                onChange={(e) => setSettings({ ...settings, username: e.target.value })}
-              />
-              <span className="subtext" style={{ fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                Username yang digunakan saat masuk/login.
-              </span>
-            </div>
 
-            <div className="form-group">
-              <label className="form-label">Kata Sandi Akun</label>
-              <input
-                type="text"
-                className="form-input"
-                required
-                placeholder="password123"
-                value={settings.password || ''}
-                onChange={(e) => setSettings({ ...settings, password: e.target.value })}
-              />
-              <span className="subtext" style={{ fontSize: '11px', marginTop: '4px', display: 'block' }}>
-                Kata sandi untuk masuk ke sistem.
-              </span>
-            </div>
-          </div>
 
           <div className="form-group">
             <label className="form-label">Nama Rental</label>
