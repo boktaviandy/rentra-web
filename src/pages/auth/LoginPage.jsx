@@ -1,49 +1,34 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CarFront, Lock, User, ArrowRight, AlertCircle } from 'lucide-react';
-import { useAuth, getStoredUser } from '../../hooks/useAuth';
+import { CarFront, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import './AuthPage.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const configuredUser = getStoredUser();
+  const { login, isLoading, authError } = useAuth();
 
-  const [username, setUsername] = useState(configuredUser?.username || 'admin');
-  const [password, setPassword] = useState(configuredUser?.password || 'password123');
-  const [loginError, setLoginError] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [localError, setLocalError] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setLoginError('');
+    setLocalError('');
 
-    const targetUser = getStoredUser();
-    const inputUser = username.trim().toLowerCase();
-    const correctUser = (targetUser?.username || 'admin').toLowerCase();
-
-    if (!inputUser || !password.trim()) {
-      setLoginError('Mohon masukkan username dan kata sandi.');
+    if (!email.trim() || !password.trim()) {
+      setLocalError('Mohon masukkan email dan kata sandi.');
       return;
     }
 
-    if (inputUser !== correctUser && inputUser !== 'admin') {
-      setLoginError(`Username "${username}" tidak ditemukan. Silakan periksa kembali.`);
-      return;
+    const result = await login(email, password);
+
+    if (result?.success) {
+      navigate('/dashboard');
     }
-
-    const correctPass = targetUser?.password || 'password123';
-    if (password !== correctPass && password !== 'password123' && password !== 'admin123') {
-      setLoginError('Kata sandi yang Anda masukkan salah.');
-      return;
-    }
-
-    login({
-      ...targetUser,
-      username: username.trim(),
-    });
-
-    navigate('/dashboard');
   };
+
+  const displayError = localError || authError;
 
   return (
     <div className="auth-page">
@@ -58,16 +43,18 @@ export function LoginPage() {
 
         <form onSubmit={handleLogin} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Username</label>
+            <label className="form-label">Email</label>
             <div className="input-with-icon">
-              <User size={18} className="input-icon" />
+              <Mail size={18} className="input-icon" />
               <input
-                type="text"
+                type="email"
                 className="form-input"
                 required
-                placeholder="Masukkan username (misal: admin)"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="email@contoh.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -83,28 +70,38 @@ export function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                disabled={isLoading}
               />
             </div>
           </div>
 
-          {loginError && (
+          {displayError && (
             <div className="auth-error-box">
               <AlertCircle size={16} />
-              <span>{loginError}</span>
+              <span>{displayError}</span>
             </div>
           )}
 
-          <button type="submit" className="btn btn-primary btn-full">
-            Masuk ke Dashboard <ArrowRight size={16} />
+          <button
+            type="submit"
+            className="btn btn-primary btn-full"
+            disabled={isLoading}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                Memverifikasi...
+              </>
+            ) : (
+              <>
+                Masuk ke Dashboard <ArrowRight size={16} />
+              </>
+            )}
           </button>
-
-          <div style={{ marginTop: '14px', textAlign: 'center', fontSize: '12px', color: 'var(--text-muted)' }}>
-            Username Login: <code>{configuredUser?.username || 'admin'}</code>
-          </div>
         </form>
       </div>
     </div>
   );
 }
-
-

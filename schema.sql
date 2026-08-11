@@ -40,6 +40,16 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Insert Default Admin Account
+INSERT INTO users (id, nama, email, "passwordHash", role)
+VALUES (
+    uuid_generate_v4(),
+    'Admin Rentra',
+    'admin@rentra.com',
+    'admin123',
+    'owner'
+) ON CONFLICT (email) DO NOTHING;
+
 -- 4. MOBIL (Data Fleet / Armada Mobil Rental)
 CREATE TABLE IF NOT EXISTS mobil (
     id VARCHAR(100) PRIMARY KEY,
