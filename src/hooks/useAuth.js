@@ -31,26 +31,12 @@ export function useAuth() {
     setAuthError('');
 
     try {
-      const { data, error } = await supabase
+      // Step 1: Find user by email
+      const { data: user, error } = await supabase
         .from('users')
         .select('*')
-        .eq('email', email.trim().toLowerCase())
-        .eq('"passwordHash"', password)
+        .ilike('email', email.trim())
         .maybeSingle();
-
-      // Fallback: try without quoting (different Supabase configs)
-      let user = data;
-      if (!user && !error) {
-        const { data: data2 } = await supabase
-          .from('users')
-          .select('*')
-          .ilike('email', email.trim())
-          .maybeSingle();
-
-        if (data2 && data2.passwordHash === password) {
-          user = data2;
-        }
-      }
 
       if (error) {
         setAuthError('Terjadi kesalahan saat menghubungi server. Coba lagi.');
@@ -58,6 +44,14 @@ export function useAuth() {
       }
 
       if (!user) {
+        setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
+        return { success: false };
+      }
+
+      // Step 2: Compare password in JavaScript
+      // Supabase returns camelCase keys matching the column name defined in schema
+      const storedPassword = user.passwordHash ?? user['passwordHash'] ?? user.password_hash ?? '';
+      if (storedPassword !== password) {
         setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
         return { success: false };
       }
