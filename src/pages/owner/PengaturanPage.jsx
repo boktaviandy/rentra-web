@@ -372,35 +372,10 @@ export function PengaturanPage() {
         </form>
       </div>
 
-      {/* Zona Bahaya / Reset Data Testing */}
-      <div className="card" style={{ maxWidth: '640px', marginTop: '24px', borderColor: '#FCA5A5' }}>
-        <h3 style={{ marginBottom: '8px', color: '#DC2626' }}>Zona Data & Testing</h3>
-        <p className="subtext" style={{ marginBottom: '16px' }}>
-          Hapus seluruh data transaksi, mobil, customer, dan riwayat untuk memulai pengujian dari nol secara manual.
-        </p>
-
-        <button
-          type="button"
-          className="btn btn-danger"
-          onClick={async () => {
-            const ok = await confirm({
-              title: 'Kosongkan Seluruh Data Rental?',
-              message: 'PERINGATAN: Semua data mobil, booking, pelanggan, driver, dan transaksi keuangan akan dihapus bersih kembali ke nol.',
-              confirmText: 'Ya, Kosongkan Semua Data',
-              variant: 'danger'
-            });
-            if (ok) {
-              clearAllRentraData();
-              toast.success('Data Berhasil Dikosongkan', 'Seluruh data rental siap diuji dari nol.');
-            }
-          }}
-        >
-          Kosongkan Semua Data Rental
-        </button>
-      </div>
     </div>
   );
 }
+
 
 
 
