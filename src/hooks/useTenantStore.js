@@ -69,13 +69,43 @@ export function useTenantStore(entityKey) {
     };
   }, [fetchData, entityKey]);
 
-  // Bulk set (optimistic local update)
+  // Bulk set & auto-sync to Supabase (optimistic local update + cloud sync)
   const saveData = useCallback(
     async (newData) => {
-      setData(newData);
+      const oldData = data;
+      setData(newData); // Optimistic UI update
+
+      try {
+        if (Array.isArray(newData)) {
+          // 1. Detect and delete removed items
+          const newIds = new Set(newData.map((item) => item.id).filter(Boolean));
+          const deletedIds = oldData
+            .map((item) => item.id)
+            .filter((id) => id && !newIds.has(id));
+
+          if (deletedIds.length > 0) {
+            const { error: delErr } = await supabase
+              .from(tableName)
+              .delete()
+              .in('id', deletedIds);
+            if (delErr) console.error(`Supabase Delete Error (${tableName}):`, delErr);
+          }
+
+          // 2. Upsert remaining items to Supabase
+          if (newData.length > 0) {
+            const { error: upsertErr } = await supabase
+              .from(tableName)
+              .upsert(newData);
+            if (upsertErr) console.error(`Supabase Upsert Error (${tableName}):`, upsertErr);
+          }
+        }
+      } catch (e) {
+        console.error(`Failed to sync ${tableName} with Supabase:`, e);
+      }
+
       window.dispatchEvent(new CustomEvent(`rentra_store_update_${entityKey}`));
     },
-    [entityKey]
+    [data, tableName, entityKey]
   );
 
   const addItem = useCallback(
