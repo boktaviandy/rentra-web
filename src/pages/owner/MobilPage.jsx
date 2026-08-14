@@ -82,21 +82,27 @@ export function MobilPage() {
 
   const { toast, confirm } = useToast();
 
+  const { uploadFoto } = useFotoLibrary();
+
   const handleDirectFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      const res = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.75 });
+      const uploaded = await uploadFoto(file, formData.id || null, {
+        judul: formData.nama || file.name.replace(/\.[^.]+$/, ''),
+        keywords: [formData.nama, formData.merk].filter(Boolean),
+      });
+      const src = getFotoSrc(uploaded);
       setFormData((prev) => ({
         ...prev,
-        foto: res.base64,
-        fotoId: ''
+        foto: src,
+        fotoId: uploaded.id
       }));
-      toast.success('Foto Berhasil Diunggah', 'Foto mobil berhasil disimpan.');
+      toast.success('Foto Berhasil Diunggah', 'Foto mobil tersimpan di Supabase Storage.');
     } catch (err) {
       console.error('Upload foto error:', err);
-      toast.error('Gagal Mengunggah', 'Gagal memproses file foto. Pastikan file berupa gambar.');
+      toast.error('Gagal Mengunggah', err.message || 'Gagal memproses file foto. Maksimum 5 MB.');
     }
   };
 

@@ -193,6 +193,22 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     "userNama" VARCHAR(255) DEFAULT 'Budi Pratama'
 );
 
+-- 11. VEHICLE_PHOTOS (Galeri Foto Armada Mobil & Storage Metadata)
+CREATE TABLE IF NOT EXISTS vehicle_photos (
+    id VARCHAR(100) PRIMARY KEY,
+    "vehicle_id" VARCHAR(100) REFERENCES mobil(id) ON DELETE SET NULL,
+    "storage_path" TEXT NOT NULL,
+    "public_url" TEXT NOT NULL,
+    title VARCHAR(255),
+    tags TEXT[] DEFAULT '{}',
+    "is_primary" BOOLEAN DEFAULT FALSE,
+    tahun VARCHAR(50) DEFAULT '-',
+    "originalSize" INTEGER DEFAULT 0,
+    "compressedSize" INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 -- ==============================================================================
 -- INDEXES UNTUK PERFORMA QUERY
 -- ==============================================================================
@@ -204,6 +220,8 @@ CREATE INDEX IF NOT EXISTS idx_bookings_mobil ON bookings("mobilId");
 CREATE INDEX IF NOT EXISTS idx_pemasukan_tgl ON pemasukan(tanggal);
 CREATE INDEX IF NOT EXISTS idx_pengeluaran_tgl ON pengeluaran(tanggal);
 CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_vehicle_photos_vehicle_id ON vehicle_photos("vehicle_id");
+CREATE INDEX IF NOT EXISTS idx_vehicle_photos_created_at ON vehicle_photos(created_at DESC);
 
 -- ==============================================================================
 -- AUTOMATIC TRIGGER UPDATED_AT
@@ -222,6 +240,7 @@ CREATE OR REPLACE TRIGGER update_customers_modtime BEFORE UPDATE ON customers FO
 CREATE OR REPLACE TRIGGER update_drivers_modtime BEFORE UPDATE ON drivers FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE OR REPLACE TRIGGER update_bookings_modtime BEFORE UPDATE ON bookings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE OR REPLACE TRIGGER update_settings_modtime BEFORE UPDATE ON settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE OR REPLACE TRIGGER update_vehicle_photos_modtime BEFORE UPDATE ON vehicle_photos FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) & SECURITY POLICIES
@@ -237,6 +256,7 @@ ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pemasukan ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pengeluaran ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_photos ENABLE ROW LEVEL SECURITY;
 
 -- 1. SETTINGS POLICIES
 DROP POLICY IF EXISTS "Authenticated full access on settings" ON settings;
@@ -277,12 +297,20 @@ CREATE POLICY "Authenticated full access on pengeluaran" ON pengeluaran FOR ALL 
 DROP POLICY IF EXISTS "Authenticated full access on audit_logs" ON audit_logs;
 CREATE POLICY "Authenticated full access on audit_logs" ON audit_logs FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 
+-- 10. VEHICLE PHOTOS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on vehicle_photos" ON vehicle_photos;
+CREATE POLICY "Authenticated full access on vehicle_photos" ON vehicle_photos FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+DROP POLICY IF EXISTS "Anon read access on vehicle_photos" ON vehicle_photos;
+CREATE POLICY "Anon read access on vehicle_photos" ON vehicle_photos FOR SELECT TO anon USING (TRUE);
+
 -- ==============================================================================
 -- GRANT PERMISSIONS
 -- ==============================================================================
 GRANT USAGE ON SCHEMA public TO authenticated, anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT SELECT ON public.settings TO anon;
+GRANT SELECT ON public.vehicle_photos TO anon;
 REVOKE INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public FROM anon;
 
 -- Reload PostgREST schema cache

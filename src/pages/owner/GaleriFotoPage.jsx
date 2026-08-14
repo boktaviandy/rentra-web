@@ -32,7 +32,7 @@ function CarPlaceholderCard({ label }) {
 }
 
 export function GaleriFotoPage() {
-  const { library, addFoto, deleteFoto, updateFoto } = useFotoLibrary();
+  const { library, uploadFoto, deleteFoto, updateFoto, replaceFoto } = useFotoLibrary();
 
   // Modal mode: 'add' | 'replace' | 'edit-meta'
   const [modalMode, setModalMode] = useState('add');
@@ -72,8 +72,8 @@ export function GaleriFotoPage() {
     setError('');
     setCompressing(true);
     try {
-      const result = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.75 });
-      setPreviewData(result);
+      const result = await compressImage(file, { maxWidth: 1200, maxHeight: 900, quality: 0.8 });
+      setPreviewData({ ...result, file });
       if (modalMode === 'add' && !formData.judul) {
         const name = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
         setFormData((f) => ({ ...f, judul: name }));
@@ -120,10 +120,11 @@ export function GaleriFotoPage() {
   const openEditMeta = (foto) => {
     setModalMode('edit-meta');
     setEditingFoto(foto);
+    const src = getFotoSrc(foto);
     setPreviewData(
-      foto.base64
+      src
         ? {
-            base64: foto.base64,
+            base64: src,
             originalSize: foto.originalSize ?? 0,
             compressedSize: foto.compressedSize ?? 0,
             readOnly: true,
@@ -148,7 +149,7 @@ export function GaleriFotoPage() {
   };
 
   // Save changes
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.judul.trim()) {
       setError('Nama / Judul mobil wajib diisi.');
       return;
@@ -159,49 +160,48 @@ export function GaleriFotoPage() {
       .map((k) => k.trim().toLowerCase())
       .filter((k) => k.length > 0);
 
-    if (modalMode === 'add') {
-      if (!previewData) {
-        setError('Pilih file foto terlebih dahulu.');
-        return;
+    try {
+      if (modalMode === 'add') {
+        if (!previewData || !previewData.file) {
+          setError('Pilih file foto terlebih dahulu.');
+          return;
+        }
+        await uploadFoto(previewData.file, null, {
+          judul: formData.judul.trim(),
+          keywords,
+          tahun: formData.tahun.trim() || '-',
+        });
+      } else if (modalMode === 'replace') {
+        if (!previewData || !previewData.file) {
+          setError('Pilih gambar pengganti terlebih dahulu.');
+          return;
+        }
+        await replaceFoto(editingFoto.id, previewData.file, {
+          judul: formData.judul.trim(),
+          keywords,
+          tahun: formData.tahun.trim() || '-',
+        });
+      } else if (modalMode === 'edit-meta') {
+        await updateFoto(editingFoto.id, {
+          judul: formData.judul.trim(),
+          keywords,
+          tahun: formData.tahun.trim() || '-',
+        });
       }
-      addFoto({
-        id: generateId(),
-        judul: formData.judul.trim(),
-        keywords,
-        tahun: formData.tahun.trim() || '-',
-        base64: previewData.base64,
-        originalSize: previewData.originalSize,
-        compressedSize: previewData.compressedSize,
-        uploadedAt: new Date().toISOString().slice(0, 10),
-      });
-    } else if (modalMode === 'replace') {
-      if (!previewData) {
-        setError('Pilih gambar pengganti terlebih dahulu.');
-        return;
-      }
-      updateFoto(editingFoto.id, {
-        judul: formData.judul.trim(),
-        keywords,
-        tahun: formData.tahun.trim() || '-',
-        base64: previewData.base64,
-        originalSize: previewData.originalSize,
-        compressedSize: previewData.compressedSize,
-        uploadedAt: new Date().toISOString().slice(0, 10),
-      });
-    } else if (modalMode === 'edit-meta') {
-      updateFoto(editingFoto.id, {
-        judul: formData.judul.trim(),
-        keywords,
-        tahun: formData.tahun.trim() || '-',
-      });
+      closeModal();
+    } catch (err) {
+      console.error('Save photo error:', err);
+      setError(err.message || 'Gagal menyimpan data foto.');
     }
-
-    closeModal();
   };
 
-  const handleDeleteFoto = (id, judul) => {
+  const handleDeleteFoto = async (id, judul) => {
     if (window.confirm(`Hapus foto "${judul}" dari galeri?`)) {
-      deleteFoto(id);
+      try {
+        await deleteFoto(id);
+      } catch (err) {
+        alert(`Gagal menghapus foto: ${err.message}`);
+      }
     }
   };
 

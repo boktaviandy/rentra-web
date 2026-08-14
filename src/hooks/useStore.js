@@ -11,6 +11,8 @@ const TABLE_MAP = {
   pengeluaran: 'pengeluaran',
   auditlog: 'audit_logs',
   settings: 'settings',
+  vehicle_photos: 'vehicle_photos',
+  foto_library: 'vehicle_photos',
 };
 
 // Strict schema whitelists matching production Supabase PostgreSQL tables
@@ -45,6 +47,10 @@ const TABLE_SCHEMAS = {
   ],
   audit_logs: [
     'id', 'timestamp', 'user', 'action', 'entity', 'entityId', 'details'
+  ],
+  vehicle_photos: [
+    'id', 'vehicle_id', 'storage_path', 'public_url', 'title', 'tags',
+    'is_primary', 'tahun', 'originalSize', 'compressedSize', 'created_at', 'updated_at'
   ]
 };
 
