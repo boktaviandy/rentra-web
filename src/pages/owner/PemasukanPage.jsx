@@ -42,8 +42,13 @@ export function PemasukanPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     const newInc = {
       ...formData,
       id: `INC-${String(Date.now()).slice(-4)}`,
@@ -73,6 +78,8 @@ export function PemasukanPage() {
         code: err?.code
       });
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi pemasukan ke database.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -150,8 +157,8 @@ export function PemasukanPage() {
             <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
               Batal
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              Simpan Transaksi
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Transaksi'}
             </button>
           </>
         }

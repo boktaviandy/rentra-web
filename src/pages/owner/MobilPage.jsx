@@ -105,8 +105,13 @@ export function MobilPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     const payload = {
       ...formData,
       tahun: Number(formData.tahun) || new Date().getFullYear(),
@@ -133,6 +138,8 @@ export function MobilPage() {
     } catch (err) {
       console.error('Submit Mobil Error:', err);
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data mobil ke database.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -256,8 +263,8 @@ export function MobilPage() {
             <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
               Batal
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              Simpan Data
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Data'}
             </button>
           </>
         }

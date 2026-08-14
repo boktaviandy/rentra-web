@@ -11,65 +11,9 @@ export function PengeluaranPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pengeluaranList, addItem: addPengeluaran, deleteItem: deletePengeluaran, setData: setPengeluaranList, isLoading } = useStore('pengeluaran');
+  const { data: pengeluaranList, addItem: addPengeluaran, deleteItem: deletePengeluaran, isLoading } = useStore('pengeluaran');
   const { data: mobilData } = useStore('mobil');
-  const { data: bookingData } = useStore('booking');
-  const { data: driverData } = useStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Auto-sinkronisasi honor driver dari booking yang berstatus Selesai
-  React.useEffect(() => {
-    if (!bookingData || bookingData.length === 0) return;
-
-    let hasNew = false;
-    const currentList = [...pengeluaranList];
-
-    bookingData.forEach((b) => {
-      if (b.status === 'Selesai' && b.driverId && !b.driverNama?.includes('Tanpa Driver')) {
-        const start = new Date(b.tglMulai || new Date());
-        const end = new Date(b.tglSelesai || new Date());
-        const diff = Math.max(0, end - start);
-        const durasiHari = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-
-        const driverObj = (driverData || []).find((d) => d.id === b.driverId);
-        const tarifDriver = driverObj ? Number(driverObj.tarif || 0) : 0;
-        const totalHonorDriver = tarifDriver * durasiHari;
-
-        if (totalHonorDriver > 0) {
-          const existingIndex = currentList.findIndex(
-            (p) => p.bookingId === b.id && p.kategori === 'Gaji Driver'
-          );
-          const labelDriver = `Honor Driver: ${b.driverNama} (${durasiHari} Hari) untuk sewa #${b.id} - ${b.customerNama}`;
-
-          if (existingIndex < 0) {
-            currentList.unshift({
-              id: `EXP-DRV-${String(b.id).replace(/[^a-zA-Z0-9]/g, '')}`,
-              tanggal: b.tglSelesai || new Date().toISOString().slice(0, 10),
-              kategori: 'Gaji Driver',
-              mobilId: b.mobilId || '',
-              mobilNama: b.mobilNama || 'Mobil',
-              bookingId: b.id,
-              nominal: totalHonorDriver,
-              catatan: labelDriver,
-              bukti: ''
-            });
-            hasNew = true;
-          } else if (currentList[existingIndex].nominal !== totalHonorDriver) {
-            currentList[existingIndex] = {
-              ...currentList[existingIndex],
-              nominal: totalHonorDriver,
-              catatan: labelDriver
-            };
-            hasNew = true;
-          }
-        }
-      }
-    });
-
-    if (hasNew) {
-      setPengeluaranList(currentList);
-    }
-  }, [bookingData, driverData]);
 
   const [formData, setFormData] = useState(() => ({
     tanggal: new Date().toISOString().slice(0, 10),
@@ -98,12 +42,19 @@ export function PengeluaranPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     const mobilObj = mobilData.find((m) => m.id === formData.mobilId);
+    const cleanMobilId = (formData.mobilId && formData.mobilId !== '' && formData.mobilId !== 'Umum / Operasional' && formData.mobilId !== 'Tidak ada') ? formData.mobilId : null;
     const newExp = {
       ...formData,
       id: `EXP-${String(Date.now()).slice(-4)}`,
+      mobilId: cleanMobilId,
       mobilNama: mobilObj ? mobilObj.nama : 'Umum / Operasional',
       nominal: Number(formData.nominal) || 0
     };
@@ -122,6 +73,8 @@ export function PengeluaranPage() {
     } catch (err) {
       console.error('Submit Pengeluaran Error:', err);
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi pengeluaran ke database.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -199,8 +152,8 @@ export function PengeluaranPage() {
             <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
               Batal
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              Simpan Transaksi
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Transaksi'}
             </button>
           </>
         }

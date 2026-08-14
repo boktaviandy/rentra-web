@@ -61,8 +61,13 @@ export function DriverPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     const payload = {
       ...formData,
       tarif: Number(formData.tarif) || 0
@@ -84,6 +89,8 @@ export function DriverPage() {
     } catch (err) {
       console.error('Submit Driver Error:', err);
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data driver ke database.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -164,8 +171,8 @@ export function DriverPage() {
             <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
               Batal
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              Simpan Data
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : 'Simpan Data'}
             </button>
           </>
         }

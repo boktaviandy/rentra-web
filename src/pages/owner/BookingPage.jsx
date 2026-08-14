@@ -32,15 +32,32 @@ export function BookingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
 
-  // Hanya tampilkan mobil yang statusnya 'Tersedia' (tidak sedang disewa oleh booking aktif lain)
+  // Dynamic availability list based on date overlaps and vehicle status
   const availableMobilList = mobilData.filter((m) => {
     if (m.status === 'Servis' || m.status === 'Nonaktif') return false;
-    const isBooked = (bookingList || []).some(
-      (b) => b.mobilId === m.id &&
-             b.id !== editingBooking?.id &&
-             (b.status === 'Berjalan' || b.status === 'Booking')
-    );
-    return !isBooked;
+
+    const isOverlap = (bookingList || []).some((b) => {
+      if (b.mobilId !== m.id) return false;
+
+      // Saat edit booking, jangan bentrok dengan dirinya sendiri
+      if (editingBooking && b.id === editingBooking.id) return false;
+
+      // Hanya booking aktif yang memblokir ketersediaan unit
+      const activeStatuses = ['Booking', 'Berjalan'];
+      if (!activeStatuses.includes(b.status)) return false;
+
+      const existingStart = b.tglMulai;
+      const existingEnd = b.tglSelesai;
+      const newStart = formData.tglMulai;
+      const newEnd = formData.tglSelesai;
+
+      if (!existingStart || !existingEnd || !newStart || !newEnd) return false;
+
+      // Overlap formula: existingStart <= newEnd && existingEnd >= newStart
+      return existingStart <= newEnd && existingEnd >= newStart;
+    });
+
+    return !isOverlap;
   });
 
   // Helper untuk mencatat/memperbarui keuangan otomatis dari booking secara IDEMPOTENT:
@@ -329,8 +346,58 @@ export function BookingPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    // 1. Validasi Tanggal Wajib
+    if (!formData.tglMulai || !formData.tglSelesai) {
+      toast.error('Tanggal Mulai dan Tanggal Selesai wajib diisi');
+      return;
+    }
+
+    // 2. Validasi Order Tanggal (tglMulai <= tglSelesai)
+    if (formData.tglMulai > formData.tglSelesai) {
+      toast.error('Tanggal mulai tidak boleh setelah tanggal selesai');
+      return;
+    }
+
+    // 3. Validasi Customer & Mobil
+    if (!formData.customerId) {
+      toast.error('Pilih customer terlebih dahulu');
+      return;
+    }
+
+    if (!formData.mobilId) {
+      toast.error('Pilih unit mobil terlebih dahulu');
+      return;
+    }
+
+    // 4. Validasi Date Overlap
+    const isConflict = (bookingList || []).some((b) => {
+      if (b.mobilId !== formData.mobilId) return false;
+      if (editingBooking && b.id === editingBooking.id) return false;
+
+      const activeStatuses = ['Booking', 'Berjalan'];
+      if (!activeStatuses.includes(b.status)) return false;
+
+      const existingStart = b.tglMulai;
+      const existingEnd = b.tglSelesai;
+      const newStart = formData.tglMulai;
+      const newEnd = formData.tglSelesai;
+
+      if (!existingStart || !existingEnd || !newStart || !newEnd) return false;
+
+      return existingStart <= newEnd && existingEnd >= newStart;
+    });
+
+    if (isConflict) {
+      toast.error('Unit mobil tidak tersedia pada rentang tanggal tersebut (bentrok dengan booking lain)');
+      return;
+    }
+
     const customerObj = customerData.find((c) => c.id === formData.customerId);
     const mobilObj = mobilData.find((m) => m.id === formData.mobilId);
     const driverObj = driverData.find((d) => d.id === formData.driverId);
@@ -353,6 +420,7 @@ export function BookingPage() {
     const rawDriverId = formData.driverId;
     const cleanDriverId = (rawDriverId && rawDriverId !== '' && !String(rawDriverId).includes('Tanpa Driver') && rawDriverId !== 'Tidak ada') ? String(rawDriverId) : null;
 
+    setIsSubmitting(true);
     try {
       if (editingBooking) {
         // Edit / Extension mode
@@ -426,11 +494,18 @@ export function BookingPage() {
         hint: err?.hint
       });
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi booking ke database.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
 
-
+  const currentAuto = calculateAutoPrice(
+    formData.mobilId,
+    formData.driverId,
+    formData.tglMulai,
+    formData.tglSelesai
+  );
 
   const filterOptions = [
     { label: 'Draft', value: 'Draft' },
@@ -439,8 +514,6 @@ export function BookingPage() {
     { label: 'Selesai', value: 'Selesai' },
     { label: 'Dibatalkan', value: 'Dibatalkan' },
   ];
-
-  const currentAuto = calculateAutoPrice(formData.mobilId, formData.driverId, formData.tglMulai, formData.tglSelesai);
 
   const columns = [
     {
@@ -566,8 +639,8 @@ export function BookingPage() {
             <button className="btn btn-secondary" onClick={() => setIsModalOpen(false)}>
               Batal
             </button>
-            <button className="btn btn-primary" onClick={handleSubmit}>
-              {editingBooking ? 'Simpan Perubahan & Update Harga' : 'Simpan & Generate Invoice'}
+            <button className="btn btn-primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? 'Menyimpan...' : (editingBooking ? 'Simpan Perubahan & Update Harga' : 'Simpan & Generate Invoice')}
             </button>
           </>
         }
