@@ -302,7 +302,10 @@ CREATE POLICY "Authenticated full access on audit_logs" ON audit_logs FOR ALL TO
 DROP POLICY IF EXISTS "Authenticated full access on vehicle_photos" ON vehicle_photos;
 DROP POLICY IF EXISTS "Anon read access on vehicle_photos" ON vehicle_photos;
 DROP POLICY IF EXISTS "Full access on vehicle_photos" ON vehicle_photos;
-CREATE POLICY "Full access on vehicle_photos" ON vehicle_photos FOR ALL TO anon, authenticated USING (TRUE) WITH CHECK (TRUE);
+DROP POLICY IF EXISTS "Public Read access on vehicle_photos" ON vehicle_photos;
+DROP POLICY IF EXISTS "Authenticated Modify on vehicle_photos" ON vehicle_photos;
+CREATE POLICY "Public Read access on vehicle_photos" ON vehicle_photos FOR SELECT TO anon, authenticated USING (TRUE);
+CREATE POLICY "Authenticated Modify on vehicle_photos" ON vehicle_photos FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 
 -- ==============================================================================
 -- GRANT PERMISSIONS
@@ -310,8 +313,8 @@ CREATE POLICY "Full access on vehicle_photos" ON vehicle_photos FOR ALL TO anon,
 GRANT USAGE ON SCHEMA public TO authenticated, anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT SELECT ON public.settings TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.vehicle_photos TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.mobil TO anon;
+GRANT SELECT ON public.vehicle_photos TO anon;
+GRANT SELECT ON public.mobil TO anon;
 
 -- ==============================================================================
 -- 12. SUPABASE STORAGE BUCKET & POLICIES (vehicle-photos)
@@ -324,13 +327,16 @@ DROP POLICY IF EXISTS "Public Read on vehicle-photos storage" ON storage.objects
 CREATE POLICY "Public Read on vehicle-photos storage" ON storage.objects FOR SELECT TO public USING (bucket_id = 'vehicle-photos');
 
 DROP POLICY IF EXISTS "Public Insert on vehicle-photos storage" ON storage.objects;
-CREATE POLICY "Public Insert on vehicle-photos storage" ON storage.objects FOR INSERT TO public WITH CHECK (bucket_id = 'vehicle-photos');
+DROP POLICY IF EXISTS "Authenticated Insert on vehicle-photos storage" ON storage.objects;
+CREATE POLICY "Authenticated Insert on vehicle-photos storage" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'vehicle-photos');
 
 DROP POLICY IF EXISTS "Public Update on vehicle-photos storage" ON storage.objects;
-CREATE POLICY "Public Update on vehicle-photos storage" ON storage.objects FOR UPDATE TO public USING (bucket_id = 'vehicle-photos');
+DROP POLICY IF EXISTS "Authenticated Update on vehicle-photos storage" ON storage.objects;
+CREATE POLICY "Authenticated Update on vehicle-photos storage" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'vehicle-photos');
 
 DROP POLICY IF EXISTS "Public Delete on vehicle-photos storage" ON storage.objects;
-CREATE POLICY "Public Delete on vehicle-photos storage" ON storage.objects FOR DELETE TO public USING (bucket_id = 'vehicle-photos');
+DROP POLICY IF EXISTS "Authenticated Delete on vehicle-photos storage" ON storage.objects;
+CREATE POLICY "Authenticated Delete on vehicle-photos storage" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'vehicle-photos');
 
 -- Reload PostgREST schema cache
 NOTIFY pgrst, 'reload schema';

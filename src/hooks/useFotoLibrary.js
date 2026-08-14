@@ -44,89 +44,89 @@ const SUPABASE_STORAGE_BASE = 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/
 const SEED_DATA = [
   {
     id: 'FOTO-SEED-001',
-    vehicle_id: 'MOB-001',
+    vehicle_id: null,
     title: 'Toyota Avanza Gen 3',
     tags: ['avanza', 'toyota', 'mpv', 'veloz'],
     tahun: '2022-2024',
-    storage_path: 'vehicles/MOB-001/FOTO-SEED-001.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-001/FOTO-SEED-001.webp`,
+    storage_path: 'gallery/FOTO-SEED-001.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-001.webp`,
     originalSize: 512000,
     compressedSize: 128000,
   },
   {
     id: 'FOTO-SEED-002',
-    vehicle_id: 'MOB-002',
+    vehicle_id: null,
     title: 'Toyota Innova Zenix Hybrid',
     tags: ['innova', 'zenix', 'toyota', 'hybrid', 'mpv'],
     tahun: '2022-2025',
-    storage_path: 'vehicles/MOB-002/FOTO-SEED-002.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-002/FOTO-SEED-002.webp`,
+    storage_path: 'gallery/FOTO-SEED-002.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-002.webp`,
     originalSize: 640000,
     compressedSize: 154000,
   },
   {
     id: 'FOTO-SEED-003',
-    vehicle_id: 'MOB-003',
+    vehicle_id: null,
     title: 'Mitsubishi Xpander Cross',
     tags: ['xpander', 'mitsubishi', 'cross', 'mpv'],
     tahun: '2021-2024',
-    storage_path: 'vehicles/MOB-003/FOTO-SEED-003.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-003/FOTO-SEED-003.webp`,
+    storage_path: 'gallery/FOTO-SEED-003.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-003.webp`,
     originalSize: 580000,
     compressedSize: 142000,
   },
   {
     id: 'FOTO-SEED-004',
-    vehicle_id: 'MOB-004',
+    vehicle_id: null,
     title: 'Honda Brio RS',
     tags: ['brio', 'honda', 'rs', 'city car', 'hatchback'],
     tahun: '2020-2024',
-    storage_path: 'vehicles/MOB-004/FOTO-SEED-004.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-004/FOTO-SEED-004.webp`,
+    storage_path: 'gallery/FOTO-SEED-004.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-004.webp`,
     originalSize: 490000,
     compressedSize: 118000,
   },
   {
     id: 'FOTO-SEED-005',
-    vehicle_id: 'MOB-005',
+    vehicle_id: null,
     title: 'Toyota Fortuner VRZ',
     tags: ['fortuner', 'toyota', 'suv', 'vrz', '4x4'],
     tahun: '2021-2025',
-    storage_path: 'vehicles/MOB-005/FOTO-SEED-005.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-005/FOTO-SEED-005.webp`,
+    storage_path: 'gallery/FOTO-SEED-005.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-005.webp`,
     originalSize: 720000,
     compressedSize: 186000,
   },
   {
     id: 'FOTO-SEED-006',
-    vehicle_id: 'MOB-006',
+    vehicle_id: null,
     title: 'Honda HR-V Turbo',
     tags: ['hrv', 'hr-v', 'honda', 'suv', 'turbo', 'crossover'],
     tahun: '2022-2025',
-    storage_path: 'vehicles/MOB-006/FOTO-SEED-006.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-006/FOTO-SEED-006.webp`,
+    storage_path: 'gallery/FOTO-SEED-006.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-006.webp`,
     originalSize: 610000,
     compressedSize: 148000,
   },
   {
     id: 'FOTO-SEED-007',
-    vehicle_id: 'MOB-007',
+    vehicle_id: null,
     title: 'Suzuki Ertiga Hybrid',
     tags: ['ertiga', 'suzuki', 'hybrid', 'mpv'],
     tahun: '2022-2024',
-    storage_path: 'vehicles/MOB-007/FOTO-SEED-007.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-007/FOTO-SEED-007.webp`,
+    storage_path: 'gallery/FOTO-SEED-007.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-007.webp`,
     originalSize: 530000,
     compressedSize: 132000,
   },
   {
     id: 'FOTO-SEED-008',
-    vehicle_id: 'MOB-008',
+    vehicle_id: null,
     title: 'Daihatsu Xenia',
     tags: ['xenia', 'daihatsu', 'mpv', 'avanza'],
     tahun: '2021-2024',
-    storage_path: 'vehicles/MOB-008/FOTO-SEED-008.webp',
-    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-008/FOTO-SEED-008.webp`,
+    storage_path: 'gallery/FOTO-SEED-008.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-008.webp`,
     originalSize: 500000,
     compressedSize: 124000,
   },
@@ -154,10 +154,10 @@ export function useFotoLibrary() {
   /** Map Supabase DB row to standard photo object */
   const mapDbRow = (row) => {
     const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
-    const finalVehicleId = row.vehicle_id || seedMatch?.vehicle_id || null;
+    const finalVehicleId = row.vehicle_id || null;
     const finalStoragePath = (row.storage_path && !row.storage_path.startsWith('unassigned/'))
       ? row.storage_path
-      : (seedMatch?.storage_path || `vehicles/${finalVehicleId || 'unassigned'}/${row.id}.webp`);
+      : (seedMatch?.storage_path || `gallery/${row.id}.webp`);
     const finalPublicUrl = (row.public_url && !row.public_url.startsWith('data:image'))
       ? row.public_url
       : (seedMatch?.public_url || `${SUPABASE_STORAGE_BASE}/${finalStoragePath}`);
@@ -204,7 +204,7 @@ export function useFotoLibrary() {
           if (match) {
             return {
               ...row,
-              vehicle_id: row.vehicle_id || match.vehicle_id,
+              vehicle_id: row.vehicle_id || null,
               storage_path: (row.storage_path && !row.storage_path.startsWith('unassigned/')) ? row.storage_path : match.storage_path,
               public_url: (row.public_url && !row.public_url.startsWith('data:image')) ? row.public_url : match.public_url,
             };
@@ -273,7 +273,7 @@ export function useFotoLibrary() {
 
     const uniqueId = `FOTO-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
-    const storagePath = vehicleId ? `vehicles/${vehicleId}/${filename}` : `unassigned/${filename}`;
+    const storagePath = vehicleId ? `vehicles/${vehicleId}/${filename}` : `gallery/${filename}`;
 
     // 2. Upload to Supabase Storage
     const { data: stData, error: stErr } = await supabase.storage
