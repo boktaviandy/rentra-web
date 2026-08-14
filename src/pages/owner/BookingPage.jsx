@@ -15,7 +15,14 @@ export function BookingPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: bookingList, setData: setBookingList, isLoading } = useStore('booking');
+  const {
+    data: bookingList,
+    setData: setBookingList,
+    addItem: addBooking,
+    updateItem: updateBooking,
+    deleteItem: deleteBooking,
+    isLoading
+  } = useStore('booking');
   const { data: mobilData, setData: setMobilData } = useStore('mobil');
   const { data: customerData } = useStore('customer');
   const { data: driverData } = useStore('driver');
@@ -264,9 +271,14 @@ export function BookingPage() {
       variant: 'danger'
     });
     if (ok) {
-      setBookingList(bookingList.filter((b) => b.id !== id));
-      syncBookingFinances({ id }, true);
-      toast.success('Booking Dihapus', `Transaksi #${id} dan riwayat keuangannya berhasil dihapus.`);
+      try {
+        await deleteBooking(id);
+        syncBookingFinances({ id }, true);
+        toast.success('Booking Dihapus', `Transaksi #${id} dan riwayat keuangannya berhasil dihapus.`);
+      } catch (err) {
+        console.error('[BOOKING] SUPABASE DELETE ERROR:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus transaksi booking dari database.');
+      }
     }
   };
 
@@ -274,48 +286,53 @@ export function BookingPage() {
     const booking = bookingList.find((b) => b.id === id);
     if (!booking) return;
 
-    if (newStatus === 'Selesai') {
-      const harga = Number(booking.harga || booking.totalHarga) || 0;
-      const deposit = Number(booking.deposit) || 0;
-      const sisa = harga - deposit;
+    try {
+      if (newStatus === 'Selesai') {
+        const harga = Number(booking.harga || booking.totalHarga) || 0;
+        const deposit = Number(booking.deposit) || 0;
+        const sisa = harga - deposit;
 
-      if (sisa > 0) {
-        const ok = await confirm({
-          title: 'Sisa Pembayaran Belum Lunas!',
-          message: `Booking #${id} masih memiliki sisa tagihan sebesar Rp ${sisa.toLocaleString('id-ID')}. Apakah penyewa sudah melunasi seluruh sisa pembayaran sekarang dan menyelesaikan masa sewa?`,
-          confirmText: 'Ya, Lunasi & Selesaikan',
-          cancelText: 'Batal',
-          variant: 'primary'
-        });
+        if (sisa > 0) {
+          const ok = await confirm({
+            title: 'Sisa Pembayaran Belum Lunas!',
+            message: `Booking #${id} masih memiliki sisa tagihan sebesar Rp ${sisa.toLocaleString('id-ID')}. Apakah penyewa sudah melunasi seluruh sisa pembayaran sekarang dan menyelesaikan masa sewa?`,
+            confirmText: 'Ya, Lunasi & Selesaikan',
+            cancelText: 'Batal',
+            variant: 'primary'
+          });
 
-        if (!ok) return;
+          if (!ok) return;
 
-        // Auto mark as fully paid & Selesai
-        const updatedBooking = { ...booking, status: 'Selesai', deposit: harga, statusPembayaran: 'Lunas' };
-        setBookingList(bookingList.map((b) => (b.id === id ? updatedBooking : b)));
-        syncBookingFinances(updatedBooking);
+          // Auto mark as fully paid & Selesai
+          const updatedBooking = { ...booking, status: 'Selesai', deposit: harga, statusPembayaran: 'Lunas' };
+          await updateBooking(id, updatedBooking);
+          syncBookingFinances(updatedBooking);
 
-        toast.success(
-          'Sewa Selesai & Lunas',
-          `Booking #${id} berhasil diselesaikan. Biaya sewa dicatat ke Pemasukan dan honor driver masuk ke Pengeluaran.`
-        );
-        return;
-      } else {
-        const updatedBooking = { ...booking, status: 'Selesai', statusPembayaran: 'Lunas' };
-        setBookingList(bookingList.map((b) => (b.id === id ? updatedBooking : b)));
-        syncBookingFinances(updatedBooking);
-        toast.success(
-          'Sewa Selesai',
-          `Booking #${id} diselesaikan. Pembukuan sewa mobil & driver telah disinkronkan ke Keuangan.`
-        );
-        return;
+          toast.success(
+            'Sewa Selesai & Lunas',
+            `Booking #${id} berhasil diselesaikan. Biaya sewa dicatat ke Pemasukan dan honor driver masuk ke Pengeluaran.`
+          );
+          return;
+        } else {
+          const updatedBooking = { ...booking, status: 'Selesai', statusPembayaran: 'Lunas' };
+          await updateBooking(id, updatedBooking);
+          syncBookingFinances(updatedBooking);
+          toast.success(
+            'Sewa Selesai',
+            `Booking #${id} diselesaikan. Pembukuan sewa mobil & driver telah disinkronkan ke Keuangan.`
+          );
+          return;
+        }
       }
-    }
 
-    const updatedBooking = { ...booking, status: newStatus };
-    setBookingList(bookingList.map((b) => (b.id === id ? updatedBooking : b)));
-    syncBookingFinances(updatedBooking);
-    toast.info('Status Diperbarui', `Status booking #${id} diubah menjadi ${newStatus}`);
+      const updatedBooking = { ...booking, status: newStatus };
+      await updateBooking(id, updatedBooking);
+      syncBookingFinances(updatedBooking);
+      toast.info('Status Diperbarui', `Status booking #${id} diubah menjadi ${newStatus}`);
+    } catch (err) {
+      console.error('[BOOKING] STATUS UPDATE ERROR:', err);
+      toast.error('Gagal Mengubah Status', 'Terjadi kesalahan saat mengubah status booking di database.');
+    }
   };
 
   const handleSubmit = async (e) => {
