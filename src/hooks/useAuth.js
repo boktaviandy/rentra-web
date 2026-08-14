@@ -89,21 +89,51 @@ export function useAuth() {
     };
   }, [fetchUserProfile]);
 
-  // Login handler strictly using Supabase Auth
-  const login = useCallback(async (email, password) => {
+  // Login handler supporting Username and Email via Supabase Auth
+  const login = useCallback(async (identifier, password) => {
     setIsLoading(true);
     setAuthError('');
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanInput = identifier.trim().toLowerCase();
+    if (!cleanInput || !password) {
+      setAuthError('Username dan password wajib diisi.');
+      setIsLoading(false);
+      return { success: false };
+    }
 
     try {
+      let targetEmail = cleanInput;
+
+      // If input is a username (doesn't contain '@'), resolve email using secure RPC
+      if (!cleanInput.includes('@')) {
+        const { data: resolved, error: rpcError } = await supabase.rpc('resolve_login_username', {
+          p_username: cleanInput,
+        });
+
+        if (!rpcError && resolved && resolved.length > 0 && resolved[0]?.email) {
+          targetEmail = resolved[0].email;
+        } else {
+          // Direct query fallback if RPC is not yet created on server
+          const { data: userRow } = await supabase
+            .from('users')
+            .select('email')
+            .ilike('username', cleanInput)
+            .maybeSingle();
+
+          if (userRow?.email) {
+            targetEmail = userRow.email;
+          }
+        }
+      }
+
+      // Authenticate via Supabase Auth GoTrue engine
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
+        email: targetEmail,
         password: password,
       });
 
       if (error) {
-        setAuthError(error.message || 'Email atau kata sandi salah. Silakan periksa kembali.');
+        setAuthError('Username atau password salah. Silakan periksa kembali.');
         setIsLoading(false);
         return { success: false };
       }
@@ -115,7 +145,7 @@ export function useAuth() {
         return { success: true, user: profile };
       }
 
-      setAuthError('Email atau kata sandi salah.');
+      setAuthError('Username atau password salah.');
       setIsLoading(false);
       return { success: false };
     } catch (e) {

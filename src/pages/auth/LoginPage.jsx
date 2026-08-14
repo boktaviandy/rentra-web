@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CarFront, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { CarFront, Lock, User, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useStore } from '../../hooks/useStore';
 import './AuthPage.css';
@@ -20,7 +20,7 @@ export function LoginPage() {
   const rentalLogo = activeSettings.logo || null;
   const namaRental = activeSettings.namaRental || 'Rentra';
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
 
@@ -28,12 +28,12 @@ export function LoginPage() {
     e.preventDefault();
     setLocalError('');
 
-    if (!email.trim() || !password.trim()) {
-      setLocalError('Mohon masukkan email dan kata sandi.');
+    if (!username.trim() || !password.trim()) {
+      setLocalError('Mohon masukkan username dan password.');
       return;
     }
 
-    const result = await login(email, password);
+    const result = await login(username, password);
 
     if (result?.success) {
       navigate('/dashboard');
@@ -63,31 +63,31 @@ export function LoginPage() {
 
         <form onSubmit={handleLogin} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label">Username</label>
             <div className="input-with-icon">
-              <Mail size={18} className="input-icon" />
+              <User size={18} className="input-icon" />
               <input
-                type="email"
+                type="text"
                 className="form-input"
                 required
-                placeholder="email@contoh.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                placeholder="Masukkan username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
                 disabled={isLoading}
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Kata Sandi</label>
+            <label className="form-label">Password</label>
             <div className="input-with-icon">
               <Lock size={18} className="input-icon" />
               <input
                 type="password"
                 className="form-input"
                 required
-                placeholder="••••••••"
+                placeholder="Masukkan password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"

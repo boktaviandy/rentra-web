@@ -48,6 +48,7 @@ ON CONFLICT (id) DO NOTHING;
 -- 3. USERS (Akun Admin / Owner Pengelola Rental)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(100),
     nama VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     role VARCHAR(50) DEFAULT 'owner',
@@ -57,8 +58,29 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS username VARCHAR(100);
+CREATE UNIQUE INDEX IF NOT EXISTS users_username_lower_unique ON public.users (LOWER(username));
+
 -- Drop legacy authentication function if it exists
 DROP FUNCTION IF EXISTS authenticate_user(text, text);
+
+-- Helper function to resolve username to email safely for login without exposing sensitive user profile data
+CREATE OR REPLACE FUNCTION resolve_login_username(p_username TEXT)
+RETURNS TABLE(email TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT u.email
+  FROM public.users u
+  WHERE LOWER(u.username) = LOWER(TRIM(p_username))
+  LIMIT 1;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION resolve_login_username TO anon;
+GRANT EXECUTE ON FUNCTION resolve_login_username TO authenticated;
 
 -- 4. MOBIL (Data Fleet / Armada Mobil Rental)
 CREATE TABLE IF NOT EXISTS mobil (
