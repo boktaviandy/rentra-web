@@ -211,7 +211,7 @@ export function PengeluaranPage() {
                 onChange={(e) => setFormData({ ...formData, mobilId: e.target.value })}
               >
                 <option value="">Operasional Umum (Non-mobil)</option>
-                {mobilData.map((m) => (
+                {(mobilData || []).map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.nama} ({m.plat})
                   </option>

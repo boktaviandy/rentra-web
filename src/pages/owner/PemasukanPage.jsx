@@ -13,6 +13,7 @@ export function PemasukanPage() {
   const { toast, confirm } = useToast();
 
   const { data: pemasukanList, addItem: addPemasukan, deleteItem: deletePemasukan, isLoading } = useStore('pemasukan');
+  const { data: bookingData } = useStore('booking');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
 
@@ -212,7 +213,7 @@ export function PemasukanPage() {
                 onChange={(e) => setFormData({ ...formData, bookingId: e.target.value })}
               >
                 <option value="">Tidak ada</option>
-                {bookingData.map((b) => (
+                {(bookingData || []).map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.id} - {b.customerNama}
                   </option>
