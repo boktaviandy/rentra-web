@@ -143,23 +143,34 @@ export function useFotoLibrary() {
   const [error, setError] = useState(null);
 
   /** Map Supabase DB row to standard photo object */
-  const mapDbRow = (row) => ({
-    id: row.id,
-    vehicle_id: row.vehicle_id || null,
-    judul: row.title || 'Foto Mobil',
-    title: row.title || 'Foto Mobil',
-    keywords: Array.isArray(row.tags) ? row.tags : [],
-    tags: Array.isArray(row.tags) ? row.tags : [],
-    tahun: row.tahun || '-',
-    public_url: row.public_url,
-    url: row.public_url,
-    storage_path: row.storage_path,
-    is_primary: !!row.is_primary,
-    originalSize: row.originalSize || 0,
-    compressedSize: row.compressedSize || 0,
-    created_at: row.created_at,
-    uploadedAt: row.created_at ? new Date(row.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
-  });
+  const mapDbRow = (row) => {
+    const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
+    const finalVehicleId = row.vehicle_id || seedMatch?.vehicle_id || null;
+    const finalStoragePath = (row.storage_path && !row.storage_path.startsWith('unassigned/'))
+      ? row.storage_path
+      : (seedMatch?.storage_path || `vehicles/${finalVehicleId || 'unassigned'}/${row.id}.webp`);
+    const finalPublicUrl = (row.public_url && !row.public_url.startsWith('data:image'))
+      ? row.public_url
+      : (seedMatch?.public_url || `${SUPABASE_STORAGE_BASE}/${finalStoragePath}`);
+
+    return {
+      id: row.id,
+      vehicle_id: finalVehicleId,
+      judul: row.title || seedMatch?.title || 'Foto Mobil',
+      title: row.title || seedMatch?.title || 'Foto Mobil',
+      keywords: Array.isArray(row.tags) && row.tags.length > 0 ? row.tags : (seedMatch?.tags || []),
+      tags: Array.isArray(row.tags) && row.tags.length > 0 ? row.tags : (seedMatch?.tags || []),
+      tahun: row.tahun || seedMatch?.tahun || '-',
+      public_url: finalPublicUrl,
+      url: finalPublicUrl,
+      storage_path: finalStoragePath,
+      is_primary: !!row.is_primary,
+      originalSize: row.originalSize || seedMatch?.originalSize || 0,
+      compressedSize: row.compressedSize || seedMatch?.compressedSize || 0,
+      created_at: row.created_at,
+      uploadedAt: row.created_at ? new Date(row.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)
+    };
+  };
 
   /** Load photos from Supabase PostgreSQL */
   const loadFotos = useCallback(async () => {
