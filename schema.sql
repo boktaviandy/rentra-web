@@ -242,6 +242,9 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Authenticated full access on settings" ON settings;
 CREATE POLICY "Authenticated full access on settings" ON settings FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 
+DROP POLICY IF EXISTS "Anon read access on settings" ON settings;
+CREATE POLICY "Anon read access on settings" ON settings FOR SELECT TO anon USING (TRUE);
+
 -- 2. USERS POLICIES
 DROP POLICY IF EXISTS "Authenticated full access on users" ON users;
 CREATE POLICY "Authenticated full access on users" ON users FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
@@ -277,6 +280,7 @@ CREATE POLICY "Authenticated full access on audit_logs" ON audit_logs FOR ALL TO
 -- ==============================================================================
 -- GRANT PERMISSIONS
 -- ==============================================================================
-GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT USAGE ON SCHEMA public TO authenticated, anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;
+GRANT SELECT ON public.settings TO anon;
+REVOKE INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public FROM anon;

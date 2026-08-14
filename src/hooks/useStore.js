@@ -18,7 +18,9 @@ function sanitizePayload(tableName, payload) {
   if (!payload || typeof payload !== 'object') return payload;
   const clean = { ...payload };
 
-  if (tableName === 'mobil') {
+  if (tableName === 'settings') {
+    clean.id = 1;
+  } else if (tableName === 'mobil') {
     const val = clean.hargaHarian ?? clean.hargaSewa ?? 0;
     clean.hargaHarian = val;
     clean.hargaSewa = val;
@@ -97,13 +99,21 @@ export function useStore(entityKey) {
           const { error: upsertErr } = await supabase
             .from(tableName)
             .upsert(sanitized);
-          if (upsertErr) console.error(`Supabase Upsert Error (${tableName}):`, upsertErr);
+
+          if (upsertErr) {
+            console.error(`Supabase Upsert Error (${tableName}):`, upsertErr);
+            return { success: false, error: upsertErr };
+          }
+          await fetchData();
+          return { success: true };
         }
+        return { success: true };
       } catch (e) {
         console.error(`Failed to sync ${tableName} with Supabase:`, e);
+        return { success: false, error: e };
       }
     },
-    [tableName]
+    [tableName, fetchData]
   );
 
   const addItem = useCallback(

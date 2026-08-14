@@ -44,11 +44,12 @@ function compressImage(file, maxSize = 256) {
 export function PengaturanPage() {
   const { t } = useTranslation();
   const { currentUser, updateProfile } = useAuth();
-  const { data: storedSettings, setData: setStoredSettings } = useStore('settings');
+  const { data: storedSettings, setData: setStoredSettings, refetch: refetchSettings } = useStore('settings');
   const { toast, confirm } = useToast();
 
   const fileRef = useRef(null);
   const [logoUploading, setLogoUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [settings, setSettings] = useState(() => {
     const fromStore = Array.isArray(storedSettings) && storedSettings[0] ? storedSettings[0] : {};
@@ -106,27 +107,39 @@ export function PengaturanPage() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    const updatedSettings = { ...settings, id: 1 };
-    
-    // Save to local cache + Supabase table settings
-    if (setStoredSettings) {
-      await setStoredSettings([updatedSettings]);
+    setIsSaving(true);
+
+    try {
+      const updatedSettings = { ...settings, id: 1 };
+      
+      // Save Business Settings to Supabase public.settings table
+      if (setStoredSettings) {
+        const result = await setStoredSettings([updatedSettings]);
+        if (result && result.success === false) {
+          toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan pengaturan ke database.');
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      // Update User Profile (only valid columns in public.users: nama, noHp, email)
+      updateProfile({
+        nama: settings.namaOwner || currentUser?.nama,
+        noHp: settings.noHp,
+        email: settings.email,
+      });
+
+      if (refetchSettings) {
+        await refetchSettings();
+      }
+
+      toast.success('Pengaturan Disimpan', 'Identitas rental dan rincian rekening invoice berhasil diperbarui!');
+    } catch (err) {
+      console.error('Save Settings Error:', err);
+      toast.error('Gagal Menyimpan', 'Gagal menyimpan pengaturan. Silakan periksa koneksi internet Anda.');
+    } finally {
+      setIsSaving(false);
     }
-
-    updateProfile({
-      namaRental: settings.namaRental,
-      namaOwner: settings.namaOwner,
-      noHp: settings.noHp,
-      email: settings.email,
-      alamat: settings.alamat,
-      logo: settings.logo,
-      namaBank: settings.namaBank,
-      nomorRekening: settings.nomorRekening,
-      atasNamaRekening: settings.atasNamaRekening,
-      instruksiPembayaran: settings.instruksiPembayaran,
-    });
-
-    toast.success('Pengaturan Disimpan', 'Identitas rental dan rincian rekening invoice berhasil diperbarui!');
   };
 
 
@@ -335,8 +348,8 @@ export function PengaturanPage() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ marginTop: '16px' }}>
-            <Save size={16} /> Simpan Pengaturan
+          <button type="submit" className="btn btn-primary" disabled={isSaving} style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Save size={16} /> {isSaving ? 'Menyimpan...' : 'Simpan Pengaturan'}
           </button>
 
         </form>

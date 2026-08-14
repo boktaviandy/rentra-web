@@ -170,18 +170,30 @@ export function useAuth() {
     }
   }, []);
 
-  // Profile update handler
+  // Profile update handler (Sanitized for public.users schema)
   const updateProfile = useCallback(async (profileUpdates) => {
+    // Only send fields that actually exist in public.users schema
+    const validUserColumns = ['nama', 'noHp', 'avatar', 'username', 'email'];
+    const cleanUpdates = {};
+    if (profileUpdates && typeof profileUpdates === 'object') {
+      Object.keys(profileUpdates).forEach((key) => {
+        if (validUserColumns.includes(key)) {
+          cleanUpdates[key] = profileUpdates[key];
+        }
+      });
+    }
+
     setCurrentUser((prev) => {
       const updated = { ...prev, ...profileUpdates };
       return updated;
     });
 
-    if (currentUser?.id) {
+    if (currentUser?.id && Object.keys(cleanUpdates).length > 0) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('users')
-          .upsert({ id: currentUser.id, ...profileUpdates });
+          .upsert({ id: currentUser.id, ...cleanUpdates });
+        if (error) console.error('Failed to update user profile in DB:', error);
       } catch (e) {
         console.error('Failed to update user profile in DB:', e);
       }
