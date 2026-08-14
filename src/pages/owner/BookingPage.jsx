@@ -339,6 +339,9 @@ export function BookingPage() {
 
     const statusPembayaran = totalDeposit >= totalHarga ? 'Lunas' : totalDeposit > 0 ? 'DP / Sebagian' : 'Belum Bayar';
 
+    const rawDriverId = formData.driverId;
+    const cleanDriverId = (rawDriverId && rawDriverId !== '' && !String(rawDriverId).includes('Tanpa Driver') && rawDriverId !== 'Tidak ada') ? String(rawDriverId) : null;
+
     try {
       if (editingBooking) {
         // Edit / Extension mode
@@ -349,7 +352,7 @@ export function BookingPage() {
           mobilId: formData.mobilId,
           mobilNama: mobilObj?.nama || editingBooking.mobilNama,
           mobilPlat: mobilObj?.plat || editingBooking.mobilPlat,
-          driverId: formData.driverId || null,
+          driverId: cleanDriverId,
           driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
           tglMulai: formData.tglMulai,
           tglSelesai: formData.tglSelesai,
@@ -360,6 +363,9 @@ export function BookingPage() {
           statusPembayaran,
           catatan: formData.catatan
         };
+
+        console.log("[BOOKING] RAW FORM DATA:", formData);
+        console.log("[BOOKING] SANITIZED PAYLOAD:", updatedBooking);
 
         await updateBooking(editingBooking.id, updatedBooking);
         syncBookingFinances(updatedBooking);
@@ -380,7 +386,7 @@ export function BookingPage() {
           mobilId: formData.mobilId,
           mobilNama: mobilObj?.nama || 'Mobil',
           mobilPlat: mobilObj?.plat || 'Plat',
-          driverId: formData.driverId || null,
+          driverId: cleanDriverId,
           driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
           tglMulai: formData.tglMulai,
           tglSelesai: formData.tglSelesai,
@@ -393,13 +399,21 @@ export function BookingPage() {
           createdAt: now.toISOString().slice(0, 10)
         };
 
+        console.log("[BOOKING] RAW FORM DATA:", formData);
+        console.log("[BOOKING] SANITIZED PAYLOAD:", newBooking);
+
         await addBooking(newBooking);
         syncBookingFinances(newBooking);
         toast.success('Booking Dibuat', `Transaksi #${newBooking.id} berhasil ditambahkan dan disinkronkan ke Keuangan.`);
       }
       setIsModalOpen(false);
     } catch (err) {
-      console.error('Submit Booking Error:', err);
+      console.error("[BOOKING] SUPABASE ERROR:", {
+        code: err?.code,
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint
+      });
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi booking ke database.');
     }
   };

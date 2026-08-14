@@ -70,11 +70,11 @@ function sanitizePayload(tableName, payload) {
     clean.totalHariDisewa = clean.totalHariDisewa ?? 0;
     clean.totalPendapatan = clean.totalPendapatan ?? 0;
   } else if (tableName === 'bookings') {
-    clean.harga = clean.harga ?? 0;
-    clean.deposit = clean.deposit ?? 0;
+    clean.harga = clean.harga ? Number(clean.harga) : 0;
+    clean.deposit = clean.deposit ? Number(clean.deposit) : 0;
     clean.customerId = (clean.customerId && String(clean.customerId).trim() !== '') ? String(clean.customerId) : null;
     clean.mobilId = (clean.mobilId && String(clean.mobilId).trim() !== '') ? String(clean.mobilId) : null;
-    clean.driverId = (clean.driverId && String(clean.driverId).trim() !== '') ? String(clean.driverId) : null;
+    clean.driverId = (clean.driverId && String(clean.driverId).trim() !== '' && !String(clean.driverId).includes('Tanpa Driver') && clean.driverId !== 'Tidak ada') ? String(clean.driverId) : null;
   } else if (tableName === 'pemasukan') {
     clean.nominal = clean.nominal ? Number(clean.nominal) : 0;
     clean.bookingId = (clean.bookingId && String(clean.bookingId).trim() !== '' && clean.bookingId !== 'Tidak ada' && clean.bookingId !== 'Tanpa Booking') ? String(clean.bookingId) : null;
