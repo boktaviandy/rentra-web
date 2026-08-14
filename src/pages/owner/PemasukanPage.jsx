@@ -106,8 +106,12 @@ export function PemasukanPage() {
     const newInc = {
       ...formData,
       id: `INC-${String(Date.now()).slice(-4)}`,
-      nominal: Number(formData.nominal) || 0
+      nominal: Number(formData.nominal) || 0,
+      bookingId: (formData.bookingId && String(formData.bookingId).trim() !== '' && formData.bookingId !== 'Tidak ada' && formData.bookingId !== 'Tanpa Booking') ? String(formData.bookingId) : null
     };
+
+    console.log('[PEMASUKAN] RAW FORM:', formData);
+    console.log('[PEMASUKAN] SANITIZED PAYLOAD:', newInc);
 
     try {
       await addPemasukan(newInc);
@@ -121,7 +125,12 @@ export function PemasukanPage() {
         catatan: ''
       });
     } catch (err) {
-      console.error('Submit Pemasukan Error:', err);
+      console.error('[PEMASUKAN] Supabase INSERT ERROR:', {
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        code: err?.code
+      });
       toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi pemasukan ke database.');
     }
   };

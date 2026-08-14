@@ -72,6 +72,20 @@ function sanitizePayload(tableName, payload) {
   } else if (tableName === 'bookings') {
     clean.harga = clean.harga ?? 0;
     clean.deposit = clean.deposit ?? 0;
+    clean.customerId = (clean.customerId && String(clean.customerId).trim() !== '') ? String(clean.customerId) : null;
+    clean.mobilId = (clean.mobilId && String(clean.mobilId).trim() !== '') ? String(clean.mobilId) : null;
+    clean.driverId = (clean.driverId && String(clean.driverId).trim() !== '') ? String(clean.driverId) : null;
+  } else if (tableName === 'pemasukan') {
+    clean.nominal = clean.nominal ? Number(clean.nominal) : 0;
+    clean.bookingId = (clean.bookingId && String(clean.bookingId).trim() !== '' && clean.bookingId !== 'Tidak ada' && clean.bookingId !== 'Tanpa Booking') ? String(clean.bookingId) : null;
+    clean.catatan = clean.catatan || null;
+    clean.bukti = clean.bukti || null;
+  } else if (tableName === 'pengeluaran') {
+    clean.nominal = clean.nominal ? Number(clean.nominal) : 0;
+    clean.bookingId = (clean.bookingId && String(clean.bookingId).trim() !== '' && clean.bookingId !== 'Tidak ada' && clean.bookingId !== 'Tanpa Booking') ? String(clean.bookingId) : null;
+    clean.mobilId = (clean.mobilId && String(clean.mobilId).trim() !== '' && clean.mobilId !== 'Umum / Operasional') ? String(clean.mobilId) : null;
+    clean.catatan = clean.catatan || null;
+    clean.bukti = clean.bukti || null;
   }
 
   return clean;
