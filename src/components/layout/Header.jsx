@@ -14,10 +14,10 @@ export function Header() {
   const { currentUser } = useAuth();
   const { data: rentalSettings } = useStore('settings');
 
-  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : (currentUser || {});
-  const rentalLogo = activeSettings.logo || currentUser?.logo || null;
-  const namaRental = activeSettings.namaRental || currentUser?.namaRental || 'Garuda Rent Car';
-  const namaOwner = activeSettings.namaOwner || currentUser?.namaOwner || 'Budi Pratama';
+  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : {};
+  const rentalLogo = activeSettings.logo || null;
+  const namaRental = activeSettings.namaRental || 'Rentra';
+  const namaOwner = activeSettings.namaOwner || currentUser?.nama || 'Owner';
 
   return (
     <div className="header-wrapper">

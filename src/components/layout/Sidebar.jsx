@@ -28,9 +28,9 @@ export function Sidebar() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
   const { data: rentalSettings } = useStore('settings');
-  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : (currentUser || {});
-  const rentalLogo = activeSettings.logo || currentUser?.logo || null;
-  const namaRental = activeSettings.namaRental || currentUser?.namaRental || 'Garuda Rent Car';
+  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : {};
+  const rentalLogo = activeSettings.logo || null;
+  const namaRental = activeSettings.namaRental || 'Rentra';
 
   const navItems = [
     { path: '/dashboard', label: t('nav.dashboard'), icon: LayoutDashboard },

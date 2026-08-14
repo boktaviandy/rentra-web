@@ -54,25 +54,25 @@ export function PengaturanPage() {
   const [settings, setSettings] = useState(() => {
     const fromStore = Array.isArray(storedSettings) && storedSettings[0] ? storedSettings[0] : {};
     return {
-      namaRental: fromStore.namaRental || currentUser?.namaRental || 'Garuda Rent Car',
-      namaOwner: fromStore.namaOwner || currentUser?.namaOwner || 'Budi Pratama',
-      noHp: fromStore.noHp || currentUser?.noHp || '0812-9900-1122',
-      email: fromStore.email || currentUser?.email || 'admin@rentra.com',
-      alamat: fromStore.alamat || currentUser?.alamat || 'Jl. Sudirman No. 100, Jakarta Selatan',
+      namaRental: fromStore.namaRental || '',
+      namaOwner: fromStore.namaOwner || '',
+      noHp: fromStore.noHp || '',
+      email: fromStore.email || '',
+      alamat: fromStore.alamat || '',
       zonaWaktu: fromStore.zonaWaktu || 'Asia/Jakarta (WIB)',
       mataUang: fromStore.mataUang || 'IDR (Rp)',
-      logo: fromStore.logo || currentUser?.logo || '',
-      namaBank: fromStore.namaBank || 'BCA',
-      nomorRekening: fromStore.nomorRekening || '123-456-7890',
-      atasNamaRekening: fromStore.atasNamaRekening || fromStore.namaRental || currentUser?.namaRental || 'Garuda Rent',
-      instruksiPembayaran: fromStore.instruksiPembayaran || 'Mendukung Transfer Bank BCA, Mandiri, QRIS & Tunai',
-      syaratKetentuan: fromStore.syaratKetentuan || '1. Penyewa wajib memiliki KTP & SIM A aktif.\n2. Pembayaran sewa wajib lunas di awal sebelum serah terima unit.\n3. Keterlambatan pengembalian unit dikenakan denda Rp 50.000 / jam.',
+      logo: fromStore.logo || '',
+      namaBank: fromStore.namaBank || '',
+      nomorRekening: fromStore.nomorRekening || '',
+      atasNamaRekening: fromStore.atasNamaRekening || '',
+      instruksiPembayaran: fromStore.instruksiPembayaran || '',
+      syaratKetentuan: fromStore.syaratKetentuan || '',
       ...fromStore
     };
   });
 
   useEffect(() => {
-    if (storedSettings && storedSettings.length > 0 && storedSettings[0]?.namaRental) {
+    if (storedSettings && storedSettings.length > 0 && storedSettings[0]) {
       setSettings((prev) => ({
         ...prev,
         ...storedSettings[0],
