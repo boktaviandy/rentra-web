@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ArrowLeft, User, Phone, MapPin, FileCheck, History } from 'lucide-react';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 
 export function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: customerData } = useTenantStore('customer');
-  const { data: bookingData } = useTenantStore('booking');
+  const { data: customerData } = useStore('customer');
+  const { data: bookingData } = useStore('booking');
 
   const customer = customerData.find((c) => c.id === id);
 

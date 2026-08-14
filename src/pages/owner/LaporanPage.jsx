@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
 import { RevenueLineChart } from '../../components/charts/RevenueLineChart';
 import { Download, FileSpreadsheet, TrendingUp, TrendingDown, DollarSign, Award, Trophy, Filter } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 import './LaporanPage.css';
 
@@ -13,10 +13,10 @@ export function LaporanPage() {
   const { toast } = useToast();
   const [filterType, setFilterType] = useState('Bulanan');
 
-  const { data: pemasukanData } = useTenantStore('pemasukan');
-  const { data: pengeluaranData } = useTenantStore('pengeluaran');
-  const { data: mobilData } = useTenantStore('mobil');
-  const { data: customerData } = useTenantStore('customer');
+  const { data: pemasukanData } = useStore('pemasukan');
+  const { data: pengeluaranData } = useStore('pengeluaran');
+  const { data: mobilData } = useStore('mobil');
+  const { data: customerData } = useStore('customer');
 
   const totalPendapatan = pemasukanData.reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);
   const totalPengeluaran = pengeluaranData.reduce((acc, p) => acc + (Number(p.nominal) || 0), 0);

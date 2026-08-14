@@ -4,17 +4,17 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Table } from '../../components/ui/Table';
 import { Modal } from '../../components/ui/Modal';
 import { Plus, TrendingDown, Image as ImageIcon, Trash2 } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 
 export function PengeluaranPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pengeluaranList, addItem: addPengeluaran, deleteItem: deletePengeluaran, setData: setPengeluaranList, isLoading } = useTenantStore('pengeluaran');
-  const { data: mobilData } = useTenantStore('mobil');
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: driverData } = useTenantStore('driver');
+  const { data: pengeluaranList, addItem: addPengeluaran, deleteItem: deletePengeluaran, setData: setPengeluaranList, isLoading } = useStore('pengeluaran');
+  const { data: mobilData } = useStore('mobil');
+  const { data: bookingData } = useStore('booking');
+  const { data: driverData } = useStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Auto-sinkronisasi honor driver dari booking yang berstatus Selesai

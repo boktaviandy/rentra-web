@@ -11,7 +11,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { Calendar, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import './RevenueLineChart.css';
 
@@ -35,8 +35,8 @@ export function RevenueLineChart({ defaultPeriod = 'bulanan', showHeader = true,
   const [periodMode, setPeriodMode] = useState(defaultPeriod); // 'harian' | 'bulanan' | 'tahunan'
   const [visibleDataset, setVisibleDataset] = useState('ALL'); // 'ALL' | 'LABA' | 'PENDAPATAN' | 'PENGELUARAN'
 
-  const { data: pemasukanData } = useTenantStore('pemasukan');
-  const { data: pengeluaranData } = useTenantStore('pengeluaran');
+  const { data: pemasukanData } = useStore('pemasukan');
+  const { data: pengeluaranData } = useStore('pengeluaran');
 
   // Compute dynamic chart data based on periodMode
   const chartData = useMemo(() => {

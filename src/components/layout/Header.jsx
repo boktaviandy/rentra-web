@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../hooks/useTheme';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { Moon, Sun, Globe, Search, User, CarFront } from 'lucide-react';
 import './Header.css';
 
@@ -12,9 +12,9 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   const { currentLang, toggleLanguage } = useLanguage();
   const { currentUser } = useAuth();
-  const { data: tenantSettings } = useTenantStore('settings');
+  const { data: rentalSettings } = useStore('settings');
 
-  const activeSettings = Array.isArray(tenantSettings) && tenantSettings[0] ? tenantSettings[0] : (currentUser || {});
+  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : (currentUser || {});
   const rentalLogo = activeSettings.logo || currentUser?.logo || null;
   const namaRental = activeSettings.namaRental || currentUser?.namaRental || 'Garuda Rent Car';
   const namaOwner = activeSettings.namaOwner || currentUser?.namaOwner || 'Budi Pratama';

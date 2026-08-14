@@ -1,31 +1,95 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
-const SESSION_KEY = 'rentra_user_session';
-
-export function getStoredUser() {
-  try {
-    const saved = localStorage.getItem(SESSION_KEY);
-    return saved ? JSON.parse(saved) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
 export function useAuth() {
-  const [currentUser, setCurrentUser] = useState(() => getStoredUser());
-  const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [session, setSession] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState('');
 
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setCurrentUser(getStoredUser());
-    };
+  // Fetch profile for the authenticated user from users or settings table
+  const fetchUserProfile = useCallback(async (authUser) => {
+    if (!authUser) return null;
 
-    window.addEventListener('rentra_auth_change', handleAuthChange);
-    return () => window.removeEventListener('rentra_auth_change', handleAuthChange);
+    try {
+      // Query users profile table by Supabase Auth User ID
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (userProfile) {
+        return {
+          id: userProfile.id,
+          nama: userProfile.nama || authUser.user_metadata?.nama || authUser.email?.split('@')[0] || 'User',
+          email: userProfile.email || authUser.email,
+          role: userProfile.role || 'owner',
+          noHp: userProfile.noHp || '',
+          avatar: userProfile.avatar || '',
+        };
+      }
+    } catch (e) {
+      console.warn('User profile query error:', e);
+    }
+
+    // Fallback profile from Supabase Auth metadata
+    return {
+      id: authUser.id,
+      nama: authUser.user_metadata?.nama || authUser.email?.split('@')[0] || 'Admin',
+      email: authUser.email,
+      role: 'owner',
+      noHp: '',
+      avatar: '',
+    };
   }, []);
 
+  // Initialize and listen to Supabase Auth State
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initAuth() {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (isMounted) {
+          setSession(currentSession);
+          if (currentSession?.user) {
+            const profile = await fetchUserProfile(currentSession.user);
+            if (isMounted) setCurrentUser(profile);
+          } else {
+            setCurrentUser(null);
+          }
+        }
+      } catch (e) {
+        console.error('Error initializing auth session:', e);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    initAuth();
+
+    // Listen to Auth State Changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+      if (!isMounted) return;
+      setSession(newSession);
+
+      if (newSession?.user) {
+        const profile = await fetchUserProfile(newSession.user);
+        if (isMounted) setCurrentUser(profile);
+      } else {
+        if (isMounted) setCurrentUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, [fetchUserProfile]);
+
+  // Login handler strictly using Supabase Auth
   const login = useCallback(async (email, password) => {
     setIsLoading(true);
     setAuthError('');
@@ -33,149 +97,73 @@ export function useAuth() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      let foundUser = null;
-
-      // 1. Try RPC function first
-      const { data: rpcData, error: rpcError } = await supabase.rpc('authenticate_user', {
-        p_email: cleanEmail,
-        p_password: password
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password: password,
       });
 
-      if (!rpcError && rpcData && rpcData.length > 0) {
-        foundUser = rpcData[0];
-      } else {
-        // 2. Fallback to direct table query
-        const { data: dbUser } = await supabase
-          .from('users')
-          .select('*')
-          .ilike('email', cleanEmail)
-          .maybeSingle();
-
-        if (dbUser) {
-          const storedPassword = dbUser.passwordHash ?? dbUser['passwordHash'] ?? dbUser.password_hash ?? '';
-          if (storedPassword === password) {
-            foundUser = dbUser;
-          }
-        }
-      }
-
-      // 3. Fallback default admin credentials (ensures zero lockout)
-      if (!foundUser && cleanEmail === 'admin@rentra.com' && password === 'admin123') {
-        foundUser = {
-          id: 'admin-default-id',
-          nama: 'Admin Rentra',
-          email: 'admin@rentra.com',
-          role: 'owner',
-          noHp: '0812-9900-1122',
-          avatar: ''
-        };
-      }
-
-      if (!foundUser) {
-        setAuthError('Email atau kata sandi salah. Silakan periksa kembali.');
+      if (error) {
+        setAuthError(error.message || 'Email atau kata sandi salah. Silakan periksa kembali.');
+        setIsLoading(false);
         return { success: false };
       }
 
-      const savedSettings = (() => {
-        try {
-          const raw = localStorage.getItem('rentra_local_settings');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed[0]) return parsed[0];
-          }
-        } catch (e) {}
-        return null;
-      })();
-
-      // Store session
-      const sessionData = {
-        id: foundUser.id,
-        nama: savedSettings?.namaOwner || foundUser.nama,
-        email: foundUser.email,
-        role: foundUser.role || 'owner',
-        noHp: savedSettings?.noHp || foundUser.noHp || '',
-        avatar: foundUser.avatar || '',
-        namaRental: savedSettings?.namaRental || 'Garuda Rent Car',
-        namaOwner: savedSettings?.namaOwner || foundUser.nama,
-        alamat: savedSettings?.alamat || '',
-        logo: savedSettings?.logo || '',
-        namaBank: savedSettings?.namaBank || 'BCA',
-        nomorRekening: savedSettings?.nomorRekening || '',
-        atasNamaRekening: savedSettings?.atasNamaRekening || '',
-        instruksiPembayaran: savedSettings?.instruksiPembayaran || '',
-      };
-
-      localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-      setCurrentUser(sessionData);
-      window.dispatchEvent(new Event('rentra_auth_change'));
-      return { success: true, user: sessionData };
-    } catch (e) {
-      console.error('Login error:', e);
-
-      // Fallback check on unexpected exception
-      if (cleanEmail === 'admin@rentra.com' && password === 'admin123') {
-        const savedSettings = (() => {
-          try {
-            const raw = localStorage.getItem('rentra_local_settings');
-            if (raw) {
-              const parsed = JSON.parse(raw);
-              if (Array.isArray(parsed) && parsed[0]) return parsed[0];
-            }
-          } catch (err) {}
-          return null;
-        })();
-
-        const sessionData = {
-          id: 'admin-default-id',
-          nama: savedSettings?.namaOwner || 'Admin Rentra',
-          email: 'admin@rentra.com',
-          role: 'owner',
-          noHp: savedSettings?.noHp || '0812-9900-1122',
-          avatar: '',
-          namaRental: savedSettings?.namaRental || 'Garuda Rent Car',
-          namaOwner: savedSettings?.namaOwner || 'Admin Rentra',
-          alamat: savedSettings?.alamat || '',
-          logo: savedSettings?.logo || '',
-          namaBank: savedSettings?.namaBank || 'BCA',
-          nomorRekening: savedSettings?.nomorRekening || '',
-          atasNamaRekening: savedSettings?.atasNamaRekening || '',
-          instruksiPembayaran: savedSettings?.instruksiPembayaran || '',
-        };
-        localStorage.setItem(SESSION_KEY, JSON.stringify(sessionData));
-        setCurrentUser(sessionData);
-        window.dispatchEvent(new Event('rentra_auth_change'));
-        return { success: true, user: sessionData };
+      if (data?.session?.user) {
+        const profile = await fetchUserProfile(data.session.user);
+        setCurrentUser(profile);
+        setIsLoading(false);
+        return { success: true, user: profile };
       }
 
-      setAuthError('Terjadi kesalahan tak terduga. Coba lagi.');
+      setAuthError('Email atau kata sandi salah.');
+      setIsLoading(false);
       return { success: false };
+    } catch (e) {
+      console.error('Login error:', e);
+      setAuthError('Terjadi kesalahan tak terduga. Coba lagi.');
+      setIsLoading(false);
+      return { success: false };
+    }
+  }, [fetchUserProfile]);
+
+  // Logout handler
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('Logout error:', e);
     } finally {
+      setCurrentUser(null);
+      setSession(null);
       setIsLoading(false);
     }
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(SESSION_KEY);
-    setCurrentUser(null);
-    window.dispatchEvent(new Event('rentra_auth_change'));
-  }, []);
+  // Profile update handler
+  const updateProfile = useCallback(async (profileUpdates) => {
+    setCurrentUser((prev) => {
+      const updated = { ...prev, ...profileUpdates };
+      return updated;
+    });
 
-  const updateProfile = useCallback((profileUpdates) => {
-    const current = getStoredUser();
-    const updated = { ...current, ...profileUpdates };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(updated));
-    setCurrentUser(updated);
-    window.dispatchEvent(new Event('rentra_auth_change'));
-    return updated;
-  }, []);
+    if (currentUser?.id) {
+      try {
+        await supabase
+          .from('users')
+          .upsert({ id: currentUser.id, ...profileUpdates });
+      } catch (e) {
+        console.error('Failed to update user profile in DB:', e);
+      }
+    }
+  }, [currentUser?.id]);
 
   return {
     currentUser,
-    currentTenant: currentUser, // Backwards compatibility
+    session,
     isLoading,
     authError,
     login,
-    loginTenant: login, // Backwards compatibility
     logout,
     updateProfile,
   };

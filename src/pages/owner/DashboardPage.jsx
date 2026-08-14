@@ -16,7 +16,7 @@ import {
   Eye,
   Plus
 } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useNavigate } from 'react-router-dom';
 import './DashboardPage.css';
 
@@ -25,10 +25,10 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const { currentTenant } = useAuth();
 
-  const { data: mobilData } = useTenantStore('mobil');
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: pemasukanData } = useTenantStore('pemasukan');
-  const { data: pengeluaranData } = useTenantStore('pengeluaran');
+  const { data: mobilData } = useStore('mobil');
+  const { data: bookingData } = useStore('booking');
+  const { data: pemasukanData } = useStore('pemasukan');
+  const { data: pengeluaranData } = useStore('pengeluaran');
 
   // Metrics computation from data
   const totalMobil = mobilData.length;

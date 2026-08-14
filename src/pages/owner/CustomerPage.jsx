@@ -5,7 +5,7 @@ import { Table } from '../../components/ui/Table';
 import { Modal } from '../../components/ui/Modal';
 import { Plus, Eye, Edit, Trash2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 
 export function CustomerPage() {
@@ -13,7 +13,7 @@ export function CustomerPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: customerList, addItem: addCustomer, updateItem: updateCustomer, deleteItem: deleteCustomer, isLoading } = useTenantStore('customer');
+  const { data: customerList, addItem: addCustomer, updateItem: updateCustomer, deleteItem: deleteCustomer, isLoading } = useStore('customer');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
 

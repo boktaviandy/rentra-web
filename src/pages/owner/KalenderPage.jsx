@@ -18,7 +18,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import './KalenderPage.css';
 
@@ -26,8 +26,8 @@ export function KalenderPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: mobilData } = useTenantStore('mobil');
+  const { data: bookingData } = useStore('booking');
+  const { data: mobilData } = useStore('mobil');
 
   const [selectedMobilId, setSelectedMobilId] = useState('ALL');
   const [filterType, setFilterType] = useState('ALL'); // 'ALL' | 'RETURN_ONLY' | 'PICKUP_ONLY'

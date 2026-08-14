@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, CarFront, QrCode } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useAuth } from '../../hooks/useAuth';
 import './InvoiceDetailPage.css';
 
@@ -9,10 +9,10 @@ export function InvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: customerData } = useTenantStore('customer');
-  const { data: mobilData } = useTenantStore('mobil');
-  const { data: settingsData } = useTenantStore('settings');
+  const { data: bookingData } = useStore('booking');
+  const { data: customerData } = useStore('customer');
+  const { data: mobilData } = useStore('mobil');
+  const { data: settingsData } = useStore('settings');
   const { currentUser } = useAuth();
 
   const settings = (Array.isArray(settingsData) && settingsData[0]) ? settingsData[0] : (currentUser || {});

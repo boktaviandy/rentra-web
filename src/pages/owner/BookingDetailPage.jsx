@@ -3,15 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { ArrowLeft, Receipt, User, Car, UserCheck, Calendar, DollarSign, CreditCard } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 
 export function BookingDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: customerData } = useTenantStore('customer');
-  const { data: mobilData } = useTenantStore('mobil');
+  const { data: bookingData } = useStore('booking');
+  const { data: customerData } = useStore('customer');
+  const { data: mobilData } = useStore('mobil');
 
   const booking = bookingData.find((b) => b.id === id);
 

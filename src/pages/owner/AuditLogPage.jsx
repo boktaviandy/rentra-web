@@ -6,7 +6,7 @@ import {
   Car, FileText, Users, UserCheck, TrendingUp,
   TrendingDown, ChevronDown, ChevronUp, Shield
 } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import './AuditLogPage.css';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ function LogRow({ log, isExpanded, onToggle }) {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export function AuditLogPage() {
-  const { data: logs } = useTenantStore('auditlog');
+  const { data: logs } = useStore('auditlog');
   const [expandedId, setExpandedId] = useState(null);
 
   // Filters

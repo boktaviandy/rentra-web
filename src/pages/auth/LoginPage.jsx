@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CarFront, Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import './AuthPage.css';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isLoading, authError } = useAuth();
-  const { data: tenantSettings } = useTenantStore('settings');
+  const { currentUser, login, isLoading, authError } = useAuth();
+  const { data: rentalSettings } = useStore('settings');
 
-  const activeSettings = Array.isArray(tenantSettings) && tenantSettings[0] ? tenantSettings[0] : {};
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [currentUser, navigate]);
+
+  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : {};
   const rentalLogo = activeSettings.logo || null;
   const namaRental = activeSettings.namaRental || 'Rentra';
 

@@ -5,12 +5,12 @@ import { Table } from '../../components/ui/Table';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 
 export function InvoicePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: bookingList, isLoading } = useTenantStore('booking');
+  const { data: bookingList, isLoading } = useStore('booking');
 
   const columns = [
     {

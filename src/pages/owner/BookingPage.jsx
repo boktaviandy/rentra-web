@@ -6,7 +6,7 @@ import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Plus, Eye, Receipt, Trash2, Edit, CheckCircle2, Calendar, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 import './BookingPage.css';
 
@@ -15,12 +15,12 @@ export function BookingPage() {
   const navigate = useNavigate();
   const { toast, confirm } = useToast();
 
-  const { data: bookingList, setData: setBookingList, isLoading } = useTenantStore('booking');
-  const { data: mobilData, setData: setMobilData } = useTenantStore('mobil');
-  const { data: customerData } = useTenantStore('customer');
-  const { data: driverData } = useTenantStore('driver');
-  const { data: pemasukanList, setData: setPemasukanList } = useTenantStore('pemasukan');
-  const { data: pengeluaranList, setData: setPengeluaranList } = useTenantStore('pengeluaran');
+  const { data: bookingList, setData: setBookingList, isLoading } = useStore('booking');
+  const { data: mobilData, setData: setMobilData } = useStore('mobil');
+  const { data: customerData } = useStore('customer');
+  const { data: driverData } = useStore('driver');
+  const { data: pemasukanList, setData: setPemasukanList } = useStore('pemasukan');
+  const { data: pengeluaranList, setData: setPengeluaranList } = useStore('pengeluaran');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);

@@ -50,7 +50,6 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nama VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    "passwordHash" VARCHAR(255),
     role VARCHAR(50) DEFAULT 'owner',
     "noHp" VARCHAR(50),
     avatar TEXT,
@@ -58,28 +57,8 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert Default Admin Account (selalu reset passwordHash ke admin123 agar tidak lockout)
-INSERT INTO users (nama, email, "passwordHash", role)
-VALUES ('Admin Rentra', 'admin@rentra.com', 'admin123', 'owner')
-ON CONFLICT (email) DO UPDATE SET "passwordHash" = 'admin123', role = 'owner';
-
--- Fungsi Login (SECURITY DEFINER = bypass RLS, pakai hak postgres)
-CREATE OR REPLACE FUNCTION authenticate_user(p_email TEXT, p_password TEXT)
-RETURNS TABLE(id UUID, nama TEXT, email TEXT, role TEXT, "noHp" TEXT, avatar TEXT)
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT u.id, u.nama, u.email, u.role, u."noHp", u.avatar
-  FROM users u
-  WHERE u.email ILIKE p_email
-    AND u."passwordHash" = p_password;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION authenticate_user TO anon;
-GRANT EXECUTE ON FUNCTION authenticate_user TO authenticated;
+-- Drop legacy authentication function if it exists
+DROP FUNCTION IF EXISTS authenticate_user(text, text);
 
 -- 4. MOBIL (Data Fleet / Armada Mobil Rental)
 CREATE TABLE IF NOT EXISTS mobil (
@@ -223,23 +202,59 @@ CREATE OR REPLACE TRIGGER update_bookings_modtime BEFORE UPDATE ON bookings FOR 
 CREATE OR REPLACE TRIGGER update_settings_modtime BEFORE UPDATE ON settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ==============================================================================
--- DISABLE ROW LEVEL SECURITY (RLS)
--- Wajib dinonaktifkan agar anon key bisa membaca & menulis data
+-- ROW LEVEL SECURITY (RLS) & SECURITY POLICIES
+-- Operational data is protected: anonymous users are denied access,
+-- while authenticated users have full application operational access.
 -- ==============================================================================
-ALTER TABLE settings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE users DISABLE ROW LEVEL SECURITY;
-ALTER TABLE mobil DISABLE ROW LEVEL SECURITY;
-ALTER TABLE customers DISABLE ROW LEVEL SECURITY;
-ALTER TABLE drivers DISABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE pemasukan DISABLE ROW LEVEL SECURITY;
-ALTER TABLE pengeluaran DISABLE ROW LEVEL SECURITY;
-ALTER TABLE audit_logs DISABLE ROW LEVEL SECURITY;
+ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mobil ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE drivers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pemasukan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pengeluaran ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- 1. SETTINGS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on settings" ON settings;
+CREATE POLICY "Authenticated full access on settings" ON settings FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 2. USERS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on users" ON users;
+CREATE POLICY "Authenticated full access on users" ON users FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 3. MOBIL POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on mobil" ON mobil;
+CREATE POLICY "Authenticated full access on mobil" ON mobil FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 4. CUSTOMERS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on customers" ON customers;
+CREATE POLICY "Authenticated full access on customers" ON customers FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 5. DRIVERS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on drivers" ON drivers;
+CREATE POLICY "Authenticated full access on drivers" ON drivers FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 6. BOOKINGS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on bookings" ON bookings;
+CREATE POLICY "Authenticated full access on bookings" ON bookings FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 7. PEMASUKAN POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on pemasukan" ON pemasukan;
+CREATE POLICY "Authenticated full access on pemasukan" ON pemasukan FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 8. PENGELUARAN POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on pengeluaran" ON pengeluaran;
+CREATE POLICY "Authenticated full access on pengeluaran" ON pengeluaran FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
+
+-- 9. AUDIT LOGS POLICIES
+DROP POLICY IF EXISTS "Authenticated full access on audit_logs" ON audit_logs;
+CREATE POLICY "Authenticated full access on audit_logs" ON audit_logs FOR ALL TO authenticated USING (TRUE) WITH CHECK (TRUE);
 
 -- ==============================================================================
--- GRANT PERMISSIONS (agar anon/authenticated key bisa akses semua tabel)
+-- GRANT PERMISSIONS
 -- ==============================================================================
-GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;

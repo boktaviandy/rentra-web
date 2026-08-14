@@ -4,16 +4,16 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { ArrowLeft, Calendar, DollarSign, Wrench, Clock, FileText, Car } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import './MobilDetailPage.css';
 
 export function MobilDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { data: mobilData } = useTenantStore('mobil');
-  const { data: bookingData } = useTenantStore('booking');
-  const { data: pengeluaranData } = useTenantStore('pengeluaran');
+  const { data: mobilData } = useStore('mobil');
+  const { data: bookingData } = useStore('booking');
+  const { data: pengeluaranData } = useStore('pengeluaran');
 
   const mobil = mobilData.find((m) => m.id === id);
 

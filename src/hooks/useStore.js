@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
-// Map entityKey to actual Supabase table name if different
+// Map entityKey to actual Supabase table name
 const TABLE_MAP = {
   mobil: 'mobil',
   booking: 'bookings',
@@ -13,24 +13,7 @@ const TABLE_MAP = {
   settings: 'settings',
 };
 
-function getLocalCache(key) {
-  try {
-    const item = localStorage.getItem(`rentra_local_${key}`);
-    return item ? JSON.parse(item) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function setLocalCache(key, data) {
-  try {
-    localStorage.setItem(`rentra_local_${key}`, JSON.stringify(data));
-  } catch (e) {
-    console.error('Failed to set local cache', e);
-  }
-}
-
-// Sanitize payload for Supabase compatibility with both old and new schema
+// Sanitize payload for Supabase compatibility
 function sanitizePayload(tableName, payload) {
   if (!payload || typeof payload !== 'object') return payload;
   const clean = { ...payload };
@@ -54,21 +37,12 @@ export function clearAllRentraData() {
   window.dispatchEvent(new Event('rentra_data_reset'));
 }
 
-export function useTenantStore(entityKey) {
+export function useStore(entityKey) {
   const tableName = TABLE_MAP[entityKey] || entityKey;
-  const [data, setData] = useState(() => getLocalCache(entityKey) || []);
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Sync state to local storage cache on change
-  const updateDataState = useCallback((newDataOrUpdater) => {
-    setData((prev) => {
-      const updated = typeof newDataOrUpdater === 'function' ? newDataOrUpdater(prev) : newDataOrUpdater;
-      setLocalCache(entityKey, updated);
-      return updated;
-    });
-  }, [entityKey]);
-
-  // Fetch data from Supabase and merge with local cache
+  // Fetch data directly from Supabase (Source of Truth)
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -77,46 +51,32 @@ export function useTenantStore(entityKey) {
         .select('*');
 
       if (error) {
-        console.error(`Supabase Fetch Warning (${tableName}):`, error);
+        console.error(`Supabase Fetch Error (${tableName}):`, error);
         setIsLoading(false);
         return;
       }
 
       if (dbData) {
-        // Special sort depending on entity
+        // Sort items logically based on table type
         if (tableName === 'bookings' || tableName === 'pemasukan' || tableName === 'pengeluaran') {
-          dbData.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+          dbData.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
         } else if (tableName === 'audit_logs') {
           dbData.sort((a, b) => new Date(b.timestamp || 0) - new Date(a.timestamp || 0));
         }
 
-        // Merge DB data with local cache items
-        const local = getLocalCache(entityKey) || [];
-
-        if (entityKey === 'settings' && local.length > 0 && local[0]?.namaRental) {
-          const localSetting = local[0];
-          const dbSetting = dbData[0] || {};
-          const mergedSetting = { ...dbSetting, ...localSetting };
-          updateDataState([mergedSetting]);
-        } else {
-          const dbIds = new Set(dbData.map((d) => d.id));
-          const pendingLocal = local.filter((l) => l.id && !dbIds.has(l.id));
-          const merged = [...dbData, ...pendingLocal];
-          updateDataState(merged);
-        }
+        setData(dbData);
       }
     } catch (e) {
       console.error(`Failed to load ${entityKey}`, e);
     } finally {
       setIsLoading(false);
     }
-  }, [tableName, entityKey, updateDataState]);
+  }, [tableName, entityKey]);
 
   useEffect(() => {
     fetchData();
 
     const handleDataReset = () => {
-      localStorage.removeItem(`rentra_local_${entityKey}`);
       fetchData();
     };
 
@@ -124,12 +84,12 @@ export function useTenantStore(entityKey) {
     return () => {
       window.removeEventListener('rentra_data_reset', handleDataReset);
     };
-  }, [fetchData, entityKey]);
+  }, [fetchData]);
 
-  // Bulk set & auto-sync to Supabase
+  // Bulk save & sync to Supabase
   const saveData = useCallback(
     async (newData) => {
-      updateDataState(newData);
+      setData(newData);
 
       try {
         if (Array.isArray(newData) && newData.length > 0) {
@@ -143,13 +103,13 @@ export function useTenantStore(entityKey) {
         console.error(`Failed to sync ${tableName} with Supabase:`, e);
       }
     },
-    [tableName, updateDataState]
+    [tableName]
   );
 
   const addItem = useCallback(
     async (item) => {
-      // Optimistic update local state + localStorage immediately
-      updateDataState((prev) => [item, ...prev]);
+      // Optimistically update React UI
+      setData((prev) => [item, ...prev]);
 
       try {
         const payload = sanitizePayload(tableName, item);
@@ -157,20 +117,21 @@ export function useTenantStore(entityKey) {
 
         if (error) {
           console.error(`Supabase Insert Warning (${tableName}):`, error);
-          // Retry with minimal payload if unknown columns exist
           const fallbackPayload = { id: item.id, nama: item.nama || item.kategori || '' };
           await supabase.from(tableName).upsert([fallbackPayload]).catch(() => {});
+        } else {
+          fetchData();
         }
       } catch (e) {
         console.error(`Insert failed for ${tableName}:`, e);
       }
     },
-    [tableName, updateDataState]
+    [tableName, fetchData]
   );
 
   const updateItem = useCallback(
     async (id, updatedFields) => {
-      updateDataState((prev) => {
+      setData((prev) => {
         const exists = prev.some((d) => String(d.id) === String(id));
         if (exists) {
           return prev.map((d) => (String(d.id) === String(id) ? { ...d, ...updatedFields } : d));
@@ -185,16 +146,17 @@ export function useTenantStore(entityKey) {
           .upsert([payload]);
 
         if (error) console.error(`Supabase Upsert Error (${tableName}):`, error);
+        else fetchData();
       } catch (e) {
         console.error(e);
       }
     },
-    [tableName, updateDataState]
+    [tableName, fetchData]
   );
 
   const deleteItem = useCallback(
     async (id) => {
-      updateDataState((prev) => prev.filter((d) => d.id !== id));
+      setData((prev) => prev.filter((d) => String(d.id) !== String(id)));
 
       try {
         const { error } = await supabase
@@ -207,7 +169,7 @@ export function useTenantStore(entityKey) {
         console.error(e);
       }
     },
-    [tableName, updateDataState]
+    [tableName]
   );
 
   return {
@@ -220,5 +182,3 @@ export function useTenantStore(entityKey) {
     refetch: fetchData
   };
 }
-
-export const useStore = useTenantStore;

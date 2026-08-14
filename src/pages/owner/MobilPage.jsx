@@ -7,7 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { PhotoPicker } from '../../components/ui/PhotoPicker';
 import { Plus, Eye, Edit, Trash2, Car, Image as ImageIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 import './MobilPage.css';
 
@@ -16,8 +16,8 @@ export function MobilPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const { data: mobilList, addItem: addMobil, updateItem: updateMobil, deleteItem: deleteMobil } = useTenantStore('mobil');
-  const { data: bookingList } = useTenantStore('booking');
+  const { data: mobilList, addItem: addMobil, updateItem: updateMobil, deleteItem: deleteMobil } = useStore('mobil');
+  const { data: bookingList } = useStore('booking');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMobil, setEditingMobil] = useState(null);
   const [isPickerOpen, setIsPickerOpen] = useState(false);

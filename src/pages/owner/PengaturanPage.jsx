@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Save, Upload, X, ImageIcon } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 
 /**
@@ -44,7 +44,7 @@ function compressImage(file, maxSize = 256) {
 export function PengaturanPage() {
   const { t } = useTranslation();
   const { currentUser, updateProfile } = useAuth();
-  const { data: storedSettings, setData: setStoredSettings } = useTenantStore('settings');
+  const { data: storedSettings, setData: setStoredSettings } = useStore('settings');
   const { toast, confirm } = useToast();
 
   const fileRef = useRef(null);

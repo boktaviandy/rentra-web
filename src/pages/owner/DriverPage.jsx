@@ -5,14 +5,14 @@ import { Table } from '../../components/ui/Table';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { Plus, Edit, Trash2, UserCheck } from 'lucide-react';
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 
 export function DriverPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: driverList, addItem: addDriver, updateItem: updateDriver, deleteItem: deleteDriver, isLoading } = useTenantStore('driver');
+  const { data: driverList, addItem: addDriver, updateItem: updateDriver, deleteItem: deleteDriver, isLoading } = useStore('driver');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDriver, setEditingDriver] = useState(null);
 

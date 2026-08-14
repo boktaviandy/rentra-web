@@ -20,15 +20,15 @@ import {
   ImagePlus,
 } from 'lucide-react';
 
-import { useTenantStore } from '../../hooks/useTenantStore';
+import { useStore } from '../../hooks/useStore';
 import './Sidebar.css';
 
 export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
-  const { data: tenantSettings } = useTenantStore('settings');
-  const activeSettings = Array.isArray(tenantSettings) && tenantSettings[0] ? tenantSettings[0] : (currentUser || {});
+  const { data: rentalSettings } = useStore('settings');
+  const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : (currentUser || {});
   const rentalLogo = activeSettings.logo || currentUser?.logo || null;
   const namaRental = activeSettings.namaRental || currentUser?.namaRental || 'Garuda Rent Car';
 
