@@ -101,6 +101,17 @@ export function clearAllRentraData() {
   window.dispatchEvent(new Event('rentra_data_reset'));
 }
 
+const SEED_MOBIL_FLEET = [
+  { id: 'MOB-001', nama: 'Toyota Avanza Gen 3', plat: 'B 1234 RNT', merk: 'Toyota', tahun: 2022, hargaHarian: 350000, hargaMingguan: 2200000, hargaBulanan: 8000000, status: 'Disewa', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-001/FOTO-SEED-001.webp', fotoId: 'FOTO-SEED-001' },
+  { id: 'MOB-002', nama: 'Toyota Innova Zenix Hybrid', plat: 'B 5678 RNT', merk: 'Toyota', tahun: 2023, hargaHarian: 650000, hargaMingguan: 4200000, hargaBulanan: 15000000, status: 'Tersedia', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-002/FOTO-SEED-002.webp', fotoId: 'FOTO-SEED-002' },
+  { id: 'MOB-003', nama: 'Mitsubishi Xpander Cross', plat: 'B 9101 RNT', merk: 'Mitsubishi', tahun: 2022, hargaHarian: 400000, hargaMingguan: 2600000, hargaBulanan: 9500000, status: 'Servis', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-003/FOTO-SEED-003.webp', fotoId: 'FOTO-SEED-003' },
+  { id: 'MOB-004', nama: 'Honda Brio RS', plat: 'B 1122 RNT', merk: 'Honda', tahun: 2021, hargaHarian: 300000, hargaMingguan: 1900000, hargaBulanan: 6800000, status: 'Disewa', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-004/FOTO-SEED-004.webp', fotoId: 'FOTO-SEED-004' },
+  { id: 'MOB-005', nama: 'Toyota Fortuner VRZ', plat: 'B 3344 RNT', merk: 'Toyota', tahun: 2023, hargaHarian: 1100000, hargaMingguan: 7200000, hargaBulanan: 26000000, status: 'Tersedia', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-005/FOTO-SEED-005.webp', fotoId: 'FOTO-SEED-005' },
+  { id: 'MOB-006', nama: 'Honda HR-V Turbo', plat: 'B 5566 RNT', merk: 'Honda', tahun: 2022, hargaHarian: 550000, hargaMingguan: 3500000, hargaBulanan: 13000000, status: 'Tersedia', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-006/FOTO-SEED-006.webp', fotoId: 'FOTO-SEED-006' },
+  { id: 'MOB-007', nama: 'Suzuki Ertiga Hybrid', plat: 'B 7788 RNT', merk: 'Suzuki', tahun: 2022, hargaHarian: 380000, hargaMingguan: 2400000, hargaBulanan: 8500000, status: 'Tersedia', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-007/FOTO-SEED-007.webp', fotoId: 'FOTO-SEED-007' },
+  { id: 'MOB-008', nama: 'Daihatsu Xenia', plat: 'B 9900 RNT', merk: 'Daihatsu', tahun: 2021, hargaHarian: 330000, hargaMingguan: 2000000, hargaBulanan: 7500000, status: 'Tersedia', foto: 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos/vehicles/MOB-008/FOTO-SEED-008.webp', fotoId: 'FOTO-SEED-008' },
+];
+
 export function useStore(entityKey) {
   const tableName = TABLE_MAP[entityKey] || entityKey;
   const [data, setData] = useState([]);
@@ -125,7 +136,7 @@ export function useStore(entityKey) {
         return;
       }
 
-      if (dbData) {
+      if (dbData && dbData.length > 0) {
         // Sort items logically based on table type
         if (tableName === 'bookings' || tableName === 'pemasukan' || tableName === 'pengeluaran') {
           dbData.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
@@ -134,6 +145,11 @@ export function useStore(entityKey) {
         }
 
         setData(dbData);
+      } else if (tableName === 'mobil') {
+        const { data: seeded } = await supabase.from('mobil').upsert(SEED_MOBIL_FLEET).select('*');
+        setData(seeded || SEED_MOBIL_FLEET);
+      } else {
+        setData([]);
       }
     } catch (e) {
       console.error(`Failed to load ${entityKey}`, e);

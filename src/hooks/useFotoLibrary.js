@@ -326,9 +326,8 @@ export function useFotoLibrary() {
     const blob = dataURLtoBlob(compressed.base64) || file;
 
     const uniqueId = `FOTO-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    const cleanVehicleId = vehicleId || 'unassigned';
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
-    const storagePath = `${cleanVehicleId}/${filename}`;
+    const storagePath = vehicleId ? `vehicles/${vehicleId}/${filename}` : `unassigned/${filename}`;
 
     // 2. Upload to Supabase Storage
     const { data: stData, error: stErr } = await supabase.storage

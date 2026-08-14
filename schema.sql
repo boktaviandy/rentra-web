@@ -308,11 +308,10 @@ CREATE POLICY "Full access on vehicle_photos" ON vehicle_photos FOR ALL TO anon,
 -- GRANT PERMISSIONS
 -- ==============================================================================
 GRANT USAGE ON SCHEMA public TO authenticated, anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated, anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT SELECT ON public.settings TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.vehicle_photos TO anon;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.mobil TO anon;
-REVOKE INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public FROM anon;
 
 -- ==============================================================================
 -- 12. SUPABASE STORAGE BUCKET & POLICIES (vehicle-photos)
