@@ -26,6 +26,15 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 export function getFotoSrc(foto) {
   if (!foto) return null;
   if (typeof foto === 'string') return foto;
+  if (foto.public_url && typeof foto.public_url === 'string' && foto.public_url.startsWith('https://')) {
+    return foto.public_url;
+  }
+  if (foto.url && typeof foto.url === 'string' && foto.url.startsWith('https://')) {
+    return foto.url;
+  }
+  if (foto.storage_path && typeof foto.storage_path === 'string' && !foto.storage_path.startsWith('unassigned/')) {
+    return `${SUPABASE_STORAGE_BASE}/${foto.storage_path}`;
+  }
   return foto.public_url || foto.url || foto.fotoUrl || foto.base64 || foto.foto || foto.image || foto.imageUrl || null;
 }
 
@@ -238,54 +247,9 @@ export function useFotoLibrary() {
     }
   }, []);
 
-  /** Migration from legacy Base64 to Supabase Storage + PostgreSQL */
+  /** Load photos on component mount */
   useEffect(() => {
-    async function runMigration() {
-      await loadFotos();
-
-      try {
-        const { data: dbRows } = await supabase
-          .from('vehicle_photos')
-          .select('*');
-
-        if (dbRows && dbRows.length > 0) {
-          for (const row of dbRows) {
-            const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
-            const vehicleId = row.vehicle_id || seedMatch?.vehicle_id;
-            const needsFix = !row.vehicle_id || row.public_url?.startsWith('data:image') || row.storage_path?.startsWith('unassigned/');
-
-            if (needsFix && seedMatch && vehicleId) {
-              const storagePath = `vehicles/${vehicleId}/${row.id}.webp`;
-              const publicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
-
-              if (row.public_url?.startsWith('data:image')) {
-                const blob = dataURLtoBlob(row.public_url);
-                if (blob) {
-                  const { error: stErr } = await supabase.storage
-                    .from(BUCKET_NAME)
-                    .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
-
-                  if (stErr) console.warn(`[Storage Upload Notice]: ${stErr.message}`);
-                }
-              }
-
-              await supabase
-                .from('vehicle_photos')
-                .update({
-                  vehicle_id: vehicleId,
-                  storage_path: storagePath,
-                  public_url: publicUrl,
-                })
-                .eq('id', row.id);
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Migration execution error:', e);
-      }
-    }
-
-    runMigration();
+    loadFotos();
   }, [loadFotos]);
 
   /** Validate File before upload */
