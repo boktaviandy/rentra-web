@@ -29,85 +29,95 @@ export function getFotoSrc(foto) {
   return foto.public_url || foto.url || foto.fotoUrl || foto.base64 || foto.foto || foto.image || foto.imageUrl || null;
 }
 
+const SUPABASE_STORAGE_BASE = 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos';
+
 /** Seed data for initial library initialization if database is clean */
 const SEED_DATA = [
   {
     id: 'FOTO-SEED-001',
+    vehicle_id: 'MOB-001',
     title: 'Toyota Avanza Gen 3',
     tags: ['avanza', 'toyota', 'mpv', 'veloz'],
     tahun: '2022-2024',
-    public_url: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/avanza-gen3.jpg',
+    storage_path: 'vehicles/MOB-001/FOTO-SEED-001.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-001/FOTO-SEED-001.webp`,
     originalSize: 512000,
     compressedSize: 128000,
   },
   {
     id: 'FOTO-SEED-002',
+    vehicle_id: 'MOB-002',
     title: 'Toyota Innova Zenix Hybrid',
     tags: ['innova', 'zenix', 'toyota', 'hybrid', 'mpv'],
     tahun: '2022-2025',
-    public_url: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/innova-zenix.jpg',
+    storage_path: 'vehicles/MOB-002/FOTO-SEED-002.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-002/FOTO-SEED-002.webp`,
     originalSize: 640000,
     compressedSize: 154000,
   },
   {
     id: 'FOTO-SEED-003',
+    vehicle_id: 'MOB-003',
     title: 'Mitsubishi Xpander Cross',
     tags: ['xpander', 'mitsubishi', 'cross', 'mpv'],
     tahun: '2021-2024',
-    public_url: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/xpander-cross.jpg',
+    storage_path: 'vehicles/MOB-003/FOTO-SEED-003.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-003/FOTO-SEED-003.webp`,
     originalSize: 580000,
     compressedSize: 142000,
   },
   {
     id: 'FOTO-SEED-004',
+    vehicle_id: 'MOB-004',
     title: 'Honda Brio RS',
     tags: ['brio', 'honda', 'rs', 'city car', 'hatchback'],
     tahun: '2020-2024',
-    public_url: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/brio-rs.jpg',
+    storage_path: 'vehicles/MOB-004/FOTO-SEED-004.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-004/FOTO-SEED-004.webp`,
     originalSize: 490000,
     compressedSize: 118000,
   },
   {
     id: 'FOTO-SEED-005',
+    vehicle_id: 'MOB-005',
     title: 'Toyota Fortuner VRZ',
     tags: ['fortuner', 'toyota', 'suv', 'vrz', '4x4'],
     tahun: '2021-2025',
-    public_url: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/fortuner-vrz.jpg',
+    storage_path: 'vehicles/MOB-005/FOTO-SEED-005.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-005/FOTO-SEED-005.webp`,
     originalSize: 720000,
     compressedSize: 186000,
   },
   {
     id: 'FOTO-SEED-006',
+    vehicle_id: 'MOB-006',
     title: 'Honda HR-V Turbo',
     tags: ['hrv', 'hr-v', 'honda', 'suv', 'turbo', 'crossover'],
     tahun: '2022-2025',
-    public_url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/hrv-turbo.jpg',
+    storage_path: 'vehicles/MOB-006/FOTO-SEED-006.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-006/FOTO-SEED-006.webp`,
     originalSize: 610000,
     compressedSize: 148000,
   },
   {
     id: 'FOTO-SEED-007',
+    vehicle_id: 'MOB-007',
     title: 'Suzuki Ertiga Hybrid',
     tags: ['ertiga', 'suzuki', 'hybrid', 'mpv'],
     tahun: '2022-2024',
-    public_url: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/ertiga-hybrid.jpg',
+    storage_path: 'vehicles/MOB-007/FOTO-SEED-007.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-007/FOTO-SEED-007.webp`,
     originalSize: 530000,
     compressedSize: 132000,
   },
   {
     id: 'FOTO-SEED-008',
+    vehicle_id: 'MOB-008',
     title: 'Daihatsu Xenia',
     tags: ['xenia', 'daihatsu', 'mpv', 'avanza'],
     tahun: '2021-2024',
-    public_url: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop&q=80',
-    storage_path: 'seed/xenia.jpg',
+    storage_path: 'vehicles/MOB-008/FOTO-SEED-008.webp',
+    public_url: `${SUPABASE_STORAGE_BASE}/vehicles/MOB-008/FOTO-SEED-008.webp`,
     originalSize: 500000,
     compressedSize: 124000,
   },
@@ -169,7 +179,19 @@ export function useFotoLibrary() {
       }
 
       if (dbRows && dbRows.length > 0) {
-        setFotos(dbRows.map(mapDbRow));
+        const processedRows = dbRows.map((row) => {
+          const match = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
+          if (match) {
+            return {
+              ...row,
+              vehicle_id: row.vehicle_id || match.vehicle_id,
+              storage_path: (row.storage_path && !row.storage_path.startsWith('unassigned/')) ? row.storage_path : match.storage_path,
+              public_url: (row.public_url && !row.public_url.startsWith('data:image')) ? row.public_url : match.public_url,
+            };
+          }
+          return row;
+        });
+        setFotos(processedRows.map(mapDbRow));
         setLoading(false);
         return;
       }
