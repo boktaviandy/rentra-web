@@ -40,6 +40,18 @@ export function getFotoSrc(foto) {
 
 const SUPABASE_STORAGE_BASE = 'https://rgkaopbkbhsikjdkemgy.supabase.co/storage/v1/object/public/vehicle-photos';
 
+/** Helper to verify if a physical object exists in Supabase Storage */
+export async function doesStorageObjectExist(storagePath) {
+  if (!storagePath || typeof storagePath !== 'string') return false;
+  try {
+    const publicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
+    const res = await fetch(publicUrl, { method: 'HEAD' });
+    return res.ok && res.status === 200;
+  } catch (e) {
+    return false;
+  }
+}
+
 /** Seed data for initial library initialization if database is clean */
 const SEED_DATA = [
   {
@@ -50,6 +62,7 @@ const SEED_DATA = [
     tahun: '2022-2024',
     storage_path: 'gallery/FOTO-SEED-001.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-001.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=800&auto=format&fit=crop&q=80',
     originalSize: 512000,
     compressedSize: 128000,
   },
@@ -61,6 +74,7 @@ const SEED_DATA = [
     tahun: '2022-2025',
     storage_path: 'gallery/FOTO-SEED-002.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-002.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&auto=format&fit=crop&q=80',
     originalSize: 640000,
     compressedSize: 154000,
   },
@@ -72,6 +86,7 @@ const SEED_DATA = [
     tahun: '2021-2024',
     storage_path: 'gallery/FOTO-SEED-003.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-003.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=800&auto=format&fit=crop&q=80',
     originalSize: 580000,
     compressedSize: 142000,
   },
@@ -83,6 +98,7 @@ const SEED_DATA = [
     tahun: '2020-2024',
     storage_path: 'gallery/FOTO-SEED-004.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-004.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=800&auto=format&fit=crop&q=80',
     originalSize: 490000,
     compressedSize: 118000,
   },
@@ -94,6 +110,7 @@ const SEED_DATA = [
     tahun: '2021-2025',
     storage_path: 'gallery/FOTO-SEED-005.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-005.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=800&auto=format&fit=crop&q=80',
     originalSize: 720000,
     compressedSize: 186000,
   },
@@ -105,6 +122,7 @@ const SEED_DATA = [
     tahun: '2022-2025',
     storage_path: 'gallery/FOTO-SEED-006.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-006.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&auto=format&fit=crop&q=80',
     originalSize: 610000,
     compressedSize: 148000,
   },
@@ -116,6 +134,7 @@ const SEED_DATA = [
     tahun: '2022-2024',
     storage_path: 'gallery/FOTO-SEED-007.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-007.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=800&auto=format&fit=crop&q=80',
     originalSize: 530000,
     compressedSize: 132000,
   },
@@ -127,6 +146,7 @@ const SEED_DATA = [
     tahun: '2021-2024',
     storage_path: 'gallery/FOTO-SEED-008.webp',
     public_url: `${SUPABASE_STORAGE_BASE}/gallery/FOTO-SEED-008.webp`,
+    fallbackUrl: 'https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=800&auto=format&fit=crop&q=80',
     originalSize: 500000,
     compressedSize: 124000,
   },
@@ -275,18 +295,23 @@ export function useFotoLibrary() {
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
     const storagePath = vehicleId ? `vehicles/${vehicleId}/${filename}` : `gallery/${filename}`;
 
-    // 2. Upload to Supabase Storage
+    // 2. Upload to Supabase Storage (strict check)
     const { data: stData, error: stErr } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
+      .upload(storagePath, blob, { contentType: 'image/webp', upsert: false });
 
-    let publicUrl = compressed.base64;
-    if (!stErr) {
-      const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
-      if (urlData?.publicUrl) publicUrl = urlData.publicUrl;
-    } else {
-      console.warn('[Supabase Storage Upload Warning]:', stErr.message);
+    if (stErr) {
+      console.error('[Supabase Storage Upload Error]:', stErr.message);
+      throw new Error(`UPLOAD_STORAGE_FAILED: Gagal mengunggah foto ke Supabase Storage (${stErr.message})`);
     }
+
+    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
+    if (!urlData?.publicUrl) {
+      await supabase.storage.from(BUCKET_NAME).remove([storagePath]);
+      throw new Error('PUBLIC_URL_INVALID: Gagal memperoleh Public URL dari Supabase Storage.');
+    }
+
+    const publicUrl = urlData.publicUrl;
 
     // 3. Insert metadata into vehicle_photos PostgreSQL table
     const tags = Array.isArray(metadata.keywords)
@@ -317,11 +342,9 @@ export function useFotoLibrary() {
 
     if (dbErr) {
       console.error('[Supabase DB Insert Error]:', dbErr);
-      // Cleanup storage file on DB error to avoid orphan files
-      if (!stErr) {
-        await supabase.storage.from(BUCKET_NAME).remove([storagePath]);
-      }
-      throw new Error(`Gagal menyimpan data foto ke database: ${dbErr.message}`);
+      // Rollback storage file on DB error
+      await supabase.storage.from(BUCKET_NAME).remove([storagePath]);
+      throw new Error(`DATABASE_INSERT_FAILED: Gagal menyimpan data foto ke database: ${dbErr.message}`);
     }
 
     await loadFotos();
@@ -334,7 +357,7 @@ export function useFotoLibrary() {
     if (!target) return;
 
     // 1. Delete object from Supabase Storage if storage_path is present
-    if (target.storage_path && !target.storage_path.startsWith('seed/')) {
+    if (target.storage_path) {
       const { error: stErr } = await supabase.storage
         .from(BUCKET_NAME)
         .remove([target.storage_path]);
@@ -352,7 +375,7 @@ export function useFotoLibrary() {
 
     if (dbErr) {
       console.error('[Supabase DB Delete Error]:', dbErr);
-      throw new Error(`Gagal menghapus foto dari database: ${dbErr.message}`);
+      throw new Error(`DATABASE_DELETE_FAILED: Gagal menghapus foto dari database: ${dbErr.message}`);
     }
 
     await loadFotos();
@@ -384,7 +407,7 @@ export function useFotoLibrary() {
 
     if (dbErr) {
       console.error('[Supabase DB Update Error]:', dbErr);
-      throw new Error(`Gagal memperbarui info foto: ${dbErr.message}`);
+      throw new Error(`DATABASE_UPDATE_FAILED: Gagal memperbarui info foto: ${dbErr.message}`);
     }
 
     await loadFotos();
@@ -396,55 +419,61 @@ export function useFotoLibrary() {
     const target = fotos.find((f) => f.id === id);
     if (!target) throw new Error('Foto yang akan diganti tidak ditemukan.');
 
-    // 1. Upload new image
     const compressed = await compressImage(newFile, { maxWidth: 1200, maxHeight: 900, quality: 0.8 });
     const blob = dataURLtoBlob(compressed.base64) || newFile;
-
-    const cleanVehicleId = target.vehicle_id || 'unassigned';
-    const newFilename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
-    const newStoragePath = `${cleanVehicleId}/${newFilename}`;
-
-    const { error: stErr } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(newStoragePath, blob, { contentType: 'image/webp', upsert: true });
-
-    let newPublicUrl = compressed.base64;
-    if (!stErr) {
-      const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(newStoragePath);
-      if (urlData?.publicUrl) newPublicUrl = urlData.publicUrl;
-    }
-
-    // 2. Update DB row
     const oldStoragePath = target.storage_path;
-    const payload = {
-      storage_path: newStoragePath,
-      public_url: newPublicUrl,
-      originalSize: newFile.size,
-      compressedSize: compressed.compressedSize,
-    };
 
-    if (metadata.judul || metadata.title) payload.title = metadata.judul || metadata.title;
-    if (metadata.keywords || metadata.tags) {
-      payload.tags = Array.isArray(metadata.keywords)
-        ? metadata.keywords
-        : typeof metadata.keywords === 'string'
-        ? metadata.keywords.split(',').map((s) => s.trim()).filter(Boolean)
-        : metadata.tags || [];
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}.webp`;
+    const newStoragePath = target.vehicle_id ? `vehicles/${target.vehicle_id}/${filename}` : `gallery/${filename}`;
+
+    // 1. Upload new image strictly
+    const { data: stData, error: stErr } = await supabase.storage
+      .from(BUCKET_NAME)
+      .upload(newStoragePath, blob, { contentType: 'image/webp', upsert: false });
+
+    if (stErr) {
+      console.error('[Supabase Storage Upload Error]:', stErr.message);
+      throw new Error(`UPLOAD_STORAGE_FAILED: Gagal mengunggah foto baru (${stErr.message})`);
     }
+
+    const { data: urlData } = supabase.storage.from(BUCKET_NAME).getPublicUrl(newStoragePath);
+    if (!urlData?.publicUrl) {
+      await supabase.storage.from(BUCKET_NAME).remove([newStoragePath]);
+      throw new Error('PUBLIC_URL_INVALID: Gagal memperoleh Public URL foto baru.');
+    }
+
+    const newPublicUrl = urlData.publicUrl;
+
+    // 2. Update PostgreSQL metadata
+    const tags = Array.isArray(metadata.keywords)
+      ? metadata.keywords
+      : typeof metadata.keywords === 'string'
+      ? metadata.keywords.split(',').map((s) => s.trim()).filter(Boolean)
+      : Array.isArray(metadata.tags)
+      ? metadata.tags
+      : target.tags;
 
     const { error: dbErr } = await supabase
       .from('vehicle_photos')
-      .update(payload)
+      .update({
+        storage_path: newStoragePath,
+        public_url: newPublicUrl,
+        title: metadata.judul || metadata.title || target.title,
+        tags,
+        tahun: metadata.tahun || target.tahun,
+        originalSize: newFile.size,
+        compressedSize: compressed.compressedSize,
+      })
       .eq('id', id);
 
     if (dbErr) {
-      // Cleanup new storage file if DB update fails
-      if (!stErr) await supabase.storage.from(BUCKET_NAME).remove([newStoragePath]);
-      throw new Error(`Gagal mengganti foto di database: ${dbErr.message}`);
+      // Rollback newly uploaded storage file
+      await supabase.storage.from(BUCKET_NAME).remove([newStoragePath]);
+      throw new Error(`DATABASE_UPDATE_FAILED: Gagal memperbarui metadata foto (${dbErr.message})`);
     }
 
-    // 3. Remove old storage file if upload and DB update succeeded
-    if (oldStoragePath && oldStoragePath !== newStoragePath && !oldStoragePath.startsWith('seed/')) {
+    // 3. Remove old storage object after successful DB update
+    if (oldStoragePath && oldStoragePath !== newStoragePath) {
       await supabase.storage.from(BUCKET_NAME).remove([oldStoragePath]);
     }
 
@@ -518,6 +547,11 @@ export function useFotoLibrary() {
   /** One-time explicit migration helper to move Base64 photos to Supabase Storage */
   const migrateGalleryPhotosToStorage = useCallback(
     async (onProgress) => {
+      let successCount = 0;
+      let skippedCount = 0;
+      let missingCount = 0;
+      let failedCount = 0;
+
       try {
         const { data: dbRows, error: fetchErr } = await supabase
           .from('vehicle_photos')
@@ -528,59 +562,121 @@ export function useFotoLibrary() {
 
         const targetRows = dbRows || [];
         const total = targetRows.length;
-        let count = 0;
 
         for (let i = 0; i < total; i++) {
           const row = targetRows[i];
-          if (onProgress) onProgress(i + 1, total, row.title || row.id);
+          const titleLabel = row.title || row.id;
 
-          const isAlreadyMigrated =
-            row.public_url &&
-            row.public_url.startsWith('https://') &&
-            row.storage_path &&
-            row.storage_path.startsWith('gallery/');
+          if (onProgress) {
+            onProgress(i + 1, total, titleLabel);
+          }
 
-          if (isAlreadyMigrated) {
-            count++;
+          const seedMatch = SEED_DATA.find(
+            (s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase()
+          );
+
+          const storagePath = (row.storage_path && !row.storage_path.startsWith('unassigned/'))
+            ? row.storage_path
+            : `gallery/${row.id}.webp`;
+
+          const expectedPublicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
+
+          // CASE C & CASE B: Verify physical existence in Supabase Storage
+          const objectExists = await doesStorageObjectExist(storagePath);
+
+          if (objectExists) {
+            if (row.storage_path !== storagePath || row.public_url !== expectedPublicUrl || row.vehicle_id !== null) {
+              await supabase
+                .from('vehicle_photos')
+                .update({
+                  storage_path: storagePath,
+                  public_url: expectedPublicUrl,
+                  vehicle_id: null,
+                })
+                .eq('id', row.id);
+            }
+            skippedCount++;
             continue;
           }
 
-          const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
-          const storagePath = `gallery/${row.id}.webp`;
-          const publicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
-
+          // Object does NOT physically exist yet. We need a binary Blob source to upload.
           let blob = null;
+
+          // CASE A & E: Base64 payload is available in database row
           if (row.public_url && row.public_url.startsWith('data:image')) {
             blob = dataURLtoBlob(row.public_url);
           }
 
-          if (blob) {
-            const { error: stErr } = await supabase.storage
-              .from(BUCKET_NAME)
-              .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
-
-            if (stErr) {
-              console.warn(`[Storage Upload Notice for ${row.id}]:`, stErr.message);
+          // CASE D Fallback: If no Base64 in row, check if SEED_DATA has a fallback binary URL
+          if (!blob && seedMatch?.fallbackUrl) {
+            try {
+              const res = await fetch(seedMatch.fallbackUrl);
+              if (res.ok) {
+                const arrBuf = await res.arrayBuffer();
+                blob = new Blob([arrBuf], { type: 'image/jpeg' });
+              }
+            } catch (e) {
+              console.warn(`[Fallback Fetch Warning for ${row.id}]:`, e.message);
             }
           }
 
-          await supabase
+          if (!blob) {
+            // CASE D: Physical file missing and no binary source available
+            console.error(`[STORAGE_OBJECT_MISSING]: ${row.id} (${titleLabel}) has no physical Storage file and no binary source.`);
+            missingCount++;
+            continue;
+          }
+
+          // Upload binary Blob to Supabase Storage
+          const { error: stErr } = await supabase.storage
+            .from(BUCKET_NAME)
+            .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
+
+          if (stErr) {
+            console.error(`[UPLOAD_STORAGE_FAILED] ${row.id}:`, stErr.message);
+            failedCount++;
+            continue;
+          }
+
+          // Verify object upload physically succeeded
+          const verifyOk = await doesStorageObjectExist(storagePath);
+          if (!verifyOk) {
+            console.error(`[STORAGE_VERIFY_FAILED] ${row.id}: Physical upload check failed.`);
+            failedCount++;
+            continue;
+          }
+
+          // Update PostgreSQL metadata only after physical Storage verification
+          const { error: updateErr } = await supabase
             .from('vehicle_photos')
             .update({
               storage_path: storagePath,
-              public_url: publicUrl,
+              public_url: expectedPublicUrl,
               vehicle_id: null,
             })
             .eq('id', row.id);
 
-          count++;
+          if (updateErr) {
+            console.error(`[DATABASE_UPDATE_FAILED] ${row.id}:`, updateErr.message);
+            failedCount++;
+            continue;
+          }
+
+          successCount++;
         }
 
         await loadFotos();
-        return { success: true, count, total };
+        return {
+          success: missingCount === 0 && failedCount === 0,
+          successCount,
+          skippedCount,
+          missingCount,
+          failedCount,
+          total,
+        };
       } catch (err) {
-        console.error('Migration error:', err);
-        return { success: false, error: err.message };
+        console.error('[MIGRATION_FAILED]:', err);
+        return { success: false, error: err.message, total: 0 };
       }
     },
     [loadFotos]

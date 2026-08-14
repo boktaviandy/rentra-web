@@ -50,11 +50,13 @@ export function GaleriFotoPage() {
 
     setMigrating(false);
     if (res.success) {
-      setMigrationStatus(`${res.count} foto berhasil dimigrasikan ke Supabase Storage.`);
-      alert(`${res.count} foto berhasil dimigrasikan ke Supabase Storage.`);
+      const msg = `${res.successCount ?? res.count} foto berhasil dimigrasikan. ${res.skippedCount ? `(${res.skippedCount} foto terverifikasi di Storage)` : ''}`;
+      setMigrationStatus(msg);
+      alert(msg);
     } else {
-      setMigrationStatus(`Migrasi gagal: ${res.error}`);
-      alert(`Migrasi gagal: ${res.error}`);
+      const errorMsg = res.error ? `Migrasi gagal: ${res.error}` : `Laporan Migrasi: ${res.successCount || 0} berhasil dimigrasikan, ${res.skippedCount || 0} terverifikasi ada di Storage, ${res.missingCount || 0} file hilang/tanpa binary, ${res.failedCount || 0} gagal upload.`;
+      setMigrationStatus(errorMsg);
+      alert(errorMsg);
     }
   };
 
