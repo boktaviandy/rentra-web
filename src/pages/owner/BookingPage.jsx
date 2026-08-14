@@ -26,8 +26,8 @@ export function BookingPage() {
   const { data: mobilData, setData: setMobilData } = useStore('mobil');
   const { data: customerData } = useStore('customer');
   const { data: driverData } = useStore('driver');
-  const { data: pemasukanList, setData: setPemasukanList } = useStore('pemasukan');
-  const { data: pengeluaranList, setData: setPengeluaranList } = useStore('pengeluaran');
+  const { data: pemasukanList, refetch: refetchPemasukan } = useStore('pemasukan');
+  const { data: pengeluaranList, refetch: refetchPengeluaran } = useStore('pengeluaran');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
@@ -43,23 +43,34 @@ export function BookingPage() {
     return !isBooked;
   });
 
-  // Helper untuk mencatat/memperbarui keuangan otomatis dari booking:
-  // - Biaya Sewa Mobil -> Masuk ke PEMASUKAN
-  // - Honor / Biaya Driver -> Masuk ke PENGELUARAN (saat booking Selesai)
-  const syncBookingFinances = (bookingObj, isDelete = false) => {
+  // Helper untuk mencatat/memperbarui keuangan otomatis dari booking secara IDEMPOTENT:
+  // - Biaya Sewa Mobil -> Masuk ke PEMASUKAN dengan ID INC-BK-{bookingId}
+  // - Honor / Biaya Driver -> Masuk ke PENGELUARAN dengan ID EXP-DRV-{bookingId} (saat booking Selesai)
+  const syncBookingFinances = async (bookingObj, isDelete = false) => {
+    if (!bookingObj || !bookingObj.id) return;
+
     if (isDelete) {
-      setPemasukanList(pemasukanList.filter((p) => p.bookingId !== bookingObj.id));
-      setPengeluaranList(pengeluaranList.filter((p) => p.bookingId !== bookingObj.id));
+      // 1. Hapus transaksi pemasukan & pengeluaran otomatis terkait bookingId dari database PostgreSQL
+      const { error: incErr } = await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
+      if (incErr) console.error('[FINANCE SYNC DELETE PEMASUKAN ERROR]', incErr);
+
+      const { error: expErr } = await supabase.from('pengeluaran').delete().eq('bookingId', bookingObj.id);
+      if (expErr) console.error('[FINANCE SYNC DELETE PENGELUARAN ERROR]', expErr);
+
+      if (refetchPemasukan) await refetchPemasukan();
+      if (refetchPengeluaran) await refetchPengeluaran();
       return;
     }
 
     const totalBayar = bookingObj.status === 'Selesai'
-      ? Number(bookingObj.harga || bookingObj.totalHarga || 0)
+      ? Number(bookingObj.harga || 0)
       : Number(bookingObj.deposit || 0);
 
     if (totalBayar <= 0) {
-      setPemasukanList(pemasukanList.filter((p) => p.bookingId !== bookingObj.id));
-      setPengeluaranList(pengeluaranList.filter((p) => p.bookingId !== bookingObj.id));
+      await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
+      await supabase.from('pengeluaran').delete().eq('bookingId', bookingObj.id);
+      if (refetchPemasukan) await refetchPemasukan();
+      if (refetchPengeluaran) await refetchPengeluaran();
       return;
     }
 
@@ -70,7 +81,7 @@ export function BookingPage() {
     const durasiHari = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 
     // Cek jasa driver
-    const driverObj = driverData.find((d) => d.id === bookingObj.driverId);
+    const driverObj = (driverData || []).find((d) => d.id === bookingObj.driverId);
     const hasDriver = Boolean(bookingObj.driverId && driverObj && !bookingObj.driverNama?.includes('Tanpa Driver'));
     const tarifDriverHarian = hasDriver ? Number(driverObj.tarif || 0) : 0;
     const totalBiayaDriver = hasDriver ? tarifDriverHarian * durasiHari : 0;
@@ -81,70 +92,53 @@ export function BookingPage() {
       : totalBayar;
 
     const todayStr = new Date().toISOString().slice(0, 10);
-
-    // 1. SINKRONISASI KE PEMASUKAN (Hanya Biaya Sewa Unit Mobil)
-    const existingIncIndex = pemasukanList.findIndex((p) => p.bookingId === bookingObj.id);
     const labelSewa = `Sewa Unit ${bookingObj.mobilNama || 'Mobil'} (${bookingObj.customerNama || 'Customer'}) - ${bookingObj.status === 'Selesai' ? 'Pelunasan Sewa Mobil' : 'DP Sewa Mobil'}`;
 
-    if (existingIncIndex >= 0) {
-      const updatedInc = [...pemasukanList];
-      updatedInc[existingIncIndex] = {
-        ...updatedInc[existingIncIndex],
-        nominal: nominalPemasukanMobil,
-        catatan: labelSewa,
-        tanggal: bookingObj.tglMulai || todayStr
-      };
-      setPemasukanList(updatedInc);
-    } else if (nominalPemasukanMobil > 0) {
-      const newInc = {
-        id: `INC-BK-${String(Date.now()).slice(-4)}`,
+    // ID Deterministik Idempotent untuk Pemasukan Otomatis
+    const autoIncId = `INC-BK-${String(bookingObj.id).replace(/[^a-zA-Z0-9-]/g, '')}`;
+
+    if (nominalPemasukanMobil > 0) {
+      const autoIncPayload = {
+        id: autoIncId,
         tanggal: bookingObj.tglMulai || todayStr,
         kategori: 'Sewa Mobil',
         bookingId: bookingObj.id,
         nominal: nominalPemasukanMobil,
         catatan: labelSewa,
-        bukti: ''
+        bukti: null
       };
-      setPemasukanList([newInc, ...pemasukanList]);
+
+      const { error: incUpsertErr } = await supabase.from('pemasukan').upsert([autoIncPayload]);
+      if (incUpsertErr) console.error('[FINANCE SYNC UPSERT PEMASUKAN ERROR]', incUpsertErr);
+    } else {
+      await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
     }
 
-    // 2. SINKRONISASI KE PENGELUARAN (Honor Jasa Driver saat Selesai)
-    const existingExpIndex = pengeluaranList.findIndex(
-      (p) => p.bookingId === bookingObj.id && p.kategori === 'Gaji Driver'
-    );
+    // ID Deterministik Idempotent untuk Pengeluaran Otomatis Honor Driver
+    const autoExpId = `EXP-DRV-${String(bookingObj.id).replace(/[^a-zA-Z0-9-]/g, '')}`;
 
     if (hasDriver && totalBiayaDriver > 0 && bookingObj.status === 'Selesai') {
       const labelDriver = `Honor Driver: ${bookingObj.driverNama} (${durasiHari} Hari) untuk sewa #${bookingObj.id} - ${bookingObj.customerNama}`;
+      const autoExpPayload = {
+        id: autoExpId,
+        tanggal: bookingObj.tglSelesai || todayStr,
+        kategori: 'Gaji Driver',
+        mobilId: bookingObj.mobilId || null,
+        mobilNama: bookingObj.mobilNama || 'Mobil',
+        bookingId: bookingObj.id,
+        nominal: totalBiayaDriver,
+        catatan: labelDriver,
+        bukti: null
+      };
 
-      if (existingExpIndex >= 0) {
-        const updatedExp = [...pengeluaranList];
-        updatedExp[existingExpIndex] = {
-          ...updatedExp[existingExpIndex],
-          nominal: totalBiayaDriver,
-          catatan: labelDriver,
-          mobilNama: bookingObj.mobilNama || 'Mobil',
-          tanggal: bookingObj.tglSelesai || todayStr
-        };
-        setPengeluaranList(updatedExp);
-      } else {
-        const newExp = {
-          id: `EXP-DRV-${String(Date.now()).slice(-4)}`,
-          tanggal: bookingObj.tglSelesai || todayStr,
-          kategori: 'Gaji Driver',
-          mobilId: bookingObj.mobilId || '',
-          mobilNama: bookingObj.mobilNama || 'Mobil',
-          bookingId: bookingObj.id,
-          nominal: totalBiayaDriver,
-          catatan: labelDriver,
-          bukti: ''
-        };
-        setPengeluaranList([newExp, ...pengeluaranList]);
-      }
-    } else if (!hasDriver || bookingObj.status !== 'Selesai') {
-      if (existingExpIndex >= 0) {
-        setPengeluaranList(pengeluaranList.filter((p) => !(p.bookingId === bookingObj.id && p.kategori === 'Gaji Driver')));
-      }
+      const { error: expUpsertErr } = await supabase.from('pengeluaran').upsert([autoExpPayload]);
+      if (expUpsertErr) console.error('[FINANCE SYNC UPSERT PENGELUARAN ERROR]', expUpsertErr);
+    } else {
+      await supabase.from('pengeluaran').delete().eq('bookingId', bookingObj.id);
     }
+
+    if (refetchPemasukan) await refetchPemasukan();
+    if (refetchPengeluaran) await refetchPengeluaran();
   };
 
 
@@ -273,7 +267,7 @@ export function BookingPage() {
     if (ok) {
       try {
         await deleteBooking(id);
-        syncBookingFinances({ id }, true);
+        await syncBookingFinances({ id }, true);
         toast.success('Booking Dihapus', `Transaksi #${id} dan riwayat keuangannya berhasil dihapus.`);
       } catch (err) {
         console.error('[BOOKING] SUPABASE DELETE ERROR:', err);
@@ -306,7 +300,7 @@ export function BookingPage() {
           // Auto mark as fully paid & Selesai
           const updatedBooking = { ...booking, status: 'Selesai', deposit: harga, statusPembayaran: 'Lunas' };
           await updateBooking(id, updatedBooking);
-          syncBookingFinances(updatedBooking);
+          await syncBookingFinances(updatedBooking);
 
           toast.success(
             'Sewa Selesai & Lunas',
@@ -316,7 +310,7 @@ export function BookingPage() {
         } else {
           const updatedBooking = { ...booking, status: 'Selesai', statusPembayaran: 'Lunas' };
           await updateBooking(id, updatedBooking);
-          syncBookingFinances(updatedBooking);
+          await syncBookingFinances(updatedBooking);
           toast.success(
             'Sewa Selesai',
             `Booking #${id} diselesaikan. Pembukuan sewa mobil & driver telah disinkronkan ke Keuangan.`
@@ -327,7 +321,7 @@ export function BookingPage() {
 
       const updatedBooking = { ...booking, status: newStatus };
       await updateBooking(id, updatedBooking);
-      syncBookingFinances(updatedBooking);
+      await syncBookingFinances(updatedBooking);
       toast.info('Status Diperbarui', `Status booking #${id} diubah menjadi ${newStatus}`);
     } catch (err) {
       console.error('[BOOKING] STATUS UPDATE ERROR:', err);
@@ -385,7 +379,7 @@ export function BookingPage() {
         console.log("[BOOKING] SANITIZED PAYLOAD:", updatedBooking);
 
         await updateBooking(editingBooking.id, updatedBooking);
-        syncBookingFinances(updatedBooking);
+        await syncBookingFinances(updatedBooking);
         toast.success(
           'Booking Diperbarui',
           `Rincian booking #${editingBooking.id} berhasil disimpan & disinkronkan ke Keuangan!`
@@ -420,7 +414,7 @@ export function BookingPage() {
         console.log("[BOOKING] SANITIZED PAYLOAD:", newBooking);
 
         await addBooking(newBooking);
-        syncBookingFinances(newBooking);
+        await syncBookingFinances(newBooking);
         toast.success('Booking Dibuat', `Transaksi #${newBooking.id} berhasil ditambahkan dan disinkronkan ke Keuangan.`);
       }
       setIsModalOpen(false);

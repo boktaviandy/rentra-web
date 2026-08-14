@@ -12,67 +12,8 @@ export function PemasukanPage() {
   const { t } = useTranslation();
   const { toast, confirm } = useToast();
 
-  const { data: pemasukanList, addItem: addPemasukan, deleteItem: deletePemasukan, setData: setPemasukanList, isLoading } = useStore('pemasukan');
-  const { data: bookingData } = useStore('booking');
-  const { data: driverData } = useStore('driver');
+  const { data: pemasukanList, addItem: addPemasukan, deleteItem: deletePemasukan, isLoading } = useStore('pemasukan');
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // Auto-sinkronisasi sewa mobil ke daftar pemasukan (hanya biaya sewa unit mobil)
-  React.useEffect(() => {
-    if (!bookingData || bookingData.length === 0) return;
-
-    let hasNew = false;
-    const currentList = [...pemasukanList];
-
-    bookingData.forEach((b) => {
-      const totalBayar = b.status === 'Selesai'
-        ? Number(b.harga || b.totalHarga || 0)
-        : Number(b.deposit || 0);
-
-      if (totalBayar > 0) {
-        const start = new Date(b.tglMulai || new Date());
-        const end = new Date(b.tglSelesai || new Date());
-        const diff = Math.max(0, end - start);
-        const durasiHari = Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-
-        const driverObj = (driverData || []).find((d) => d.id === b.driverId);
-        const hasDriver = Boolean(b.driverId && driverObj && !b.driverNama?.includes('Tanpa Driver'));
-        const tarifDriver = hasDriver ? Number(driverObj.tarif || 0) : 0;
-        const totalBiayaDriver = hasDriver ? tarifDriver * durasiHari : 0;
-
-        const nominalMobil = hasDriver ? Math.max(0, totalBayar - totalBiayaDriver) : totalBayar;
-
-        if (nominalMobil > 0) {
-          const existingIndex = currentList.findIndex((p) => p.bookingId === b.id);
-          const labelSewa = `Sewa Unit ${b.mobilNama || 'Mobil'} (${b.customerNama || 'Customer'}) - ${b.status === 'Selesai' ? 'Pelunasan Unit Mobil' : 'DP Sewa'}`;
-
-          if (existingIndex < 0) {
-            currentList.unshift({
-              id: `INC-BK-${String(b.id).replace(/[^a-zA-Z0-9]/g, '')}`,
-              tanggal: b.tglMulai || new Date().toISOString().slice(0, 10),
-              kategori: 'Sewa Mobil',
-              bookingId: b.id,
-              nominal: nominalMobil,
-              catatan: labelSewa,
-              bukti: ''
-            });
-            hasNew = true;
-          } else if (currentList[existingIndex].nominal !== nominalMobil) {
-            currentList[existingIndex] = {
-              ...currentList[existingIndex],
-              nominal: nominalMobil,
-              catatan: labelSewa
-            };
-            hasNew = true;
-          }
-        }
-      }
-    });
-
-    if (hasNew) {
-      setPemasukanList(currentList);
-    }
-  }, [bookingData, driverData]);
 
 
   const [formData, setFormData] = useState(() => ({
