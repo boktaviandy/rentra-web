@@ -515,6 +515,77 @@ export function useFotoLibrary() {
     [fotos]
   );
 
+  /** One-time explicit migration helper to move Base64 photos to Supabase Storage */
+  const migrateGalleryPhotosToStorage = useCallback(
+    async (onProgress) => {
+      try {
+        const { data: dbRows, error: fetchErr } = await supabase
+          .from('vehicle_photos')
+          .select('*')
+          .order('id');
+
+        if (fetchErr) throw fetchErr;
+
+        const targetRows = dbRows || [];
+        const total = targetRows.length;
+        let count = 0;
+
+        for (let i = 0; i < total; i++) {
+          const row = targetRows[i];
+          if (onProgress) onProgress(i + 1, total, row.title || row.id);
+
+          const isAlreadyMigrated =
+            row.public_url &&
+            row.public_url.startsWith('https://') &&
+            row.storage_path &&
+            row.storage_path.startsWith('gallery/');
+
+          if (isAlreadyMigrated) {
+            count++;
+            continue;
+          }
+
+          const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
+          const storagePath = `gallery/${row.id}.webp`;
+          const publicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
+
+          let blob = null;
+          if (row.public_url && row.public_url.startsWith('data:image')) {
+            blob = dataURLtoBlob(row.public_url);
+          }
+
+          if (blob) {
+            const { error: stErr } = await supabase.storage
+              .from(BUCKET_NAME)
+              .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
+
+            if (stErr) {
+              console.warn(`[Storage Upload Notice for ${row.id}]:`, stErr.message);
+            }
+          }
+
+          await supabase
+            .from('vehicle_photos')
+            .update({
+              storage_path: storagePath,
+              public_url: publicUrl,
+              vehicle_id: null,
+            })
+            .eq('id', row.id);
+
+          count++;
+        }
+
+        await loadFotos();
+        return { success: true, count, total };
+      } catch (err) {
+        console.error('Migration error:', err);
+        return { success: false, error: err.message };
+      }
+    },
+    [loadFotos]
+  );
+
   return {
     library: fotos, // Backward compatibility alias
     fotos,
@@ -530,5 +601,6 @@ export function useFotoLibrary() {
     getFotosByVehicleId,
     searchFoto,
     getMatchingPhotos,
+    migrateGalleryPhotosToStorage,
   };
 }

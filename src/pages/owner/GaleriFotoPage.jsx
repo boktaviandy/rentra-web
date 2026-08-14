@@ -32,7 +32,31 @@ function CarPlaceholderCard({ label }) {
 }
 
 export function GaleriFotoPage() {
-  const { library, uploadFoto, deleteFoto, updateFoto, replaceFoto } = useFotoLibrary();
+  const { library, uploadFoto, deleteFoto, updateFoto, replaceFoto, migrateGalleryPhotosToStorage } = useFotoLibrary();
+
+  const [migrating, setMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
+
+  const handleMigration = async () => {
+    if (migrating) return;
+    if (!window.confirm('Jalankan migrasi Base64 ke Supabase Storage (bucket: vehicle-photos/gallery/)?')) return;
+
+    setMigrating(true);
+    setMigrationStatus('Memulai migrasi...');
+
+    const res = await migrateGalleryPhotosToStorage((current, total, title) => {
+      setMigrationStatus(`Migrating ${current}/${total}... (${title})`);
+    });
+
+    setMigrating(false);
+    if (res.success) {
+      setMigrationStatus(`${res.count} foto berhasil dimigrasikan ke Supabase Storage.`);
+      alert(`${res.count} foto berhasil dimigrasikan ke Supabase Storage.`);
+    } else {
+      setMigrationStatus(`Migrasi gagal: ${res.error}`);
+      alert(`Migrasi gagal: ${res.error}`);
+    }
+  };
 
   // Modal mode: 'add' | 'replace' | 'edit-meta'
   const [modalMode, setModalMode] = useState('add');
@@ -226,10 +250,21 @@ export function GaleriFotoPage() {
         title="Galeri Foto Mobil"
         description="Kelola dan upload foto mobil untuk digunakan saat menambah atau mengedit unit armada."
         action={
-          <button className="btn btn-primary btn-sm" onClick={openAdd}>
-            <ImagePlus size={16} />
-            Upload Foto Baru
-          </button>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={handleMigration}
+              disabled={migrating}
+              title="Memindahkan foto Base64 di database ke Supabase Storage"
+            >
+              <RefreshCw size={15} className={migrating ? 'spin' : ''} />
+              {migrating ? migrationStatus : 'Migrasikan Foto ke Storage'}
+            </button>
+            <button className="btn btn-primary btn-sm" onClick={openAdd}>
+              <ImagePlus size={16} />
+              Upload Foto Baru
+            </button>
+          </div>
         }
       />
 
