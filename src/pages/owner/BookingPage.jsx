@@ -8,6 +8,7 @@ import { Plus, Eye, Receipt, Trash2, Edit, CheckCircle2, Calendar, Clock, AlertC
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
+import { supabase } from '../../lib/supabase';
 import './BookingPage.css';
 
 export function BookingPage() {
@@ -117,10 +118,28 @@ export function BookingPage() {
     if (isDelete || bookingObj.status === 'Dibatalkan') {
       // 1. Hapus transaksi pemasukan & pengeluaran otomatis terkait bookingId dari database PostgreSQL
       const { error: incErr } = await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
-      if (incErr) console.error('[FINANCE SYNC DELETE PEMASUKAN ERROR]', incErr);
+      if (incErr) {
+        console.error('[FINANCE SYNC DELETE PEMASUKAN ERROR]', {
+          message: incErr?.message,
+          code: incErr?.code,
+          details: incErr?.details,
+          hint: incErr?.hint,
+          table: 'pemasukan',
+          bookingId: bookingObj.id
+        });
+      }
 
       const { error: expErr } = await supabase.from('pengeluaran').delete().eq('bookingId', bookingObj.id);
-      if (expErr) console.error('[FINANCE SYNC DELETE PENGELUARAN ERROR]', expErr);
+      if (expErr) {
+        console.error('[FINANCE SYNC DELETE PENGELUARAN ERROR]', {
+          message: expErr?.message,
+          code: expErr?.code,
+          details: expErr?.details,
+          hint: expErr?.hint,
+          table: 'pengeluaran',
+          bookingId: bookingObj.id
+        });
+      }
 
       if (refetchPemasukan) await refetchPemasukan();
       if (refetchPengeluaran) await refetchPengeluaran();
@@ -174,7 +193,16 @@ export function BookingPage() {
       };
 
       const { error: incUpsertErr } = await supabase.from('pemasukan').upsert([autoIncPayload]);
-      if (incUpsertErr) console.error('[FINANCE SYNC UPSERT PEMASUKAN ERROR]', incUpsertErr);
+      if (incUpsertErr) {
+        console.error('[FINANCE SYNC UPSERT PEMASUKAN ERROR]', {
+          message: incUpsertErr?.message,
+          code: incUpsertErr?.code,
+          details: incUpsertErr?.details,
+          hint: incUpsertErr?.hint,
+          table: 'pemasukan',
+          bookingId: bookingObj.id
+        });
+      }
     } else {
       await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
     }
@@ -197,7 +225,16 @@ export function BookingPage() {
       };
 
       const { error: expUpsertErr } = await supabase.from('pengeluaran').upsert([autoExpPayload]);
-      if (expUpsertErr) console.error('[FINANCE SYNC UPSERT PENGELUARAN ERROR]', expUpsertErr);
+      if (expUpsertErr) {
+        console.error('[FINANCE SYNC UPSERT PENGELUARAN ERROR]', {
+          message: expUpsertErr?.message,
+          code: expUpsertErr?.code,
+          details: expUpsertErr?.details,
+          hint: expUpsertErr?.hint,
+          table: 'pengeluaran',
+          bookingId: bookingObj.id
+        });
+      }
     } else {
       await supabase.from('pengeluaran').delete().eq('bookingId', bookingObj.id);
     }
@@ -289,8 +326,16 @@ export function BookingPage() {
         await syncBookingFinances({ id }, true);
         toast.success('Booking Dihapus', `Transaksi #${id} dan riwayat keuangannya berhasil dihapus.`);
       } catch (err) {
-        console.error('[BOOKING] SUPABASE DELETE ERROR:', err);
-        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus transaksi booking dari database.');
+        console.error('[BOOKING] SUPABASE DELETE ERROR:', {
+          message: err?.message,
+          code: err?.code,
+          details: err?.details,
+          hint: err?.hint,
+          table: 'bookings',
+          bookingId: id,
+          error: err
+        });
+        toast.error('Gagal Menghapus', err?.message || 'Terjadi kesalahan saat menghapus transaksi booking dari database.');
       }
     }
   };
@@ -343,8 +388,16 @@ export function BookingPage() {
       await syncBookingFinances(updatedBooking);
       toast.info('Status Diperbarui', `Status booking #${id} diubah menjadi ${newStatus}`);
     } catch (err) {
-      console.error('[BOOKING] STATUS UPDATE ERROR:', err);
-      toast.error('Gagal Mengubah Status', 'Terjadi kesalahan saat mengubah status booking di database.');
+      console.error('[BOOKING] STATUS UPDATE ERROR:', {
+        message: err?.message,
+        code: err?.code,
+        details: err?.details,
+        hint: err?.hint,
+        table: 'bookings',
+        bookingId: id,
+        error: err
+      });
+      toast.error('Gagal Mengubah Status', err?.message || 'Terjadi kesalahan saat mengubah status booking di database.');
     }
   };
 
@@ -488,12 +541,14 @@ export function BookingPage() {
       setIsModalOpen(false);
     } catch (err) {
       console.error("[BOOKING] SUPABASE ERROR:", {
-        code: err?.code,
         message: err?.message,
+        code: err?.code,
         details: err?.details,
-        hint: err?.hint
+        hint: err?.hint,
+        table: 'bookings',
+        error: err
       });
-      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi booking ke database.');
+      toast.error('Gagal Menyimpan', err?.message || 'Terjadi kesalahan saat menyimpan transaksi booking ke database.');
     } finally {
       setIsSubmitting(false);
     }
