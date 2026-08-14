@@ -91,8 +91,13 @@ export function PemasukanPage() {
       variant: 'danger'
     });
     if (ok) {
-      await deletePemasukan(id);
-      toast.success('Pemasukan Dihapus', 'Data transaksi berhasil dihapus.');
+      try {
+        await deletePemasukan(id);
+        toast.success('Pemasukan Dihapus', 'Data transaksi berhasil dihapus.');
+      } catch (err) {
+        console.error('Delete Pemasukan Error:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus transaksi pemasukan.');
+      }
     }
   };
 
@@ -103,16 +108,22 @@ export function PemasukanPage() {
       id: `INC-${String(Date.now()).slice(-4)}`,
       nominal: Number(formData.nominal) || 0
     };
-    await addPemasukan(newInc);
-    toast.success('Pemasukan Dicatat', `Pemasukan Rp ${Number(newInc.nominal).toLocaleString('id-ID')} (${newInc.kategori}) berhasil disimpan.`);
-    setIsModalOpen(false);
-    setFormData({
-      tanggal: new Date().toISOString().slice(0, 10),
-      nominal: '',
-      kategori: 'Denda',
-      bookingId: '',
-      catatan: ''
-    });
+
+    try {
+      await addPemasukan(newInc);
+      toast.success('Pemasukan Dicatat', `Pemasukan Rp ${Number(newInc.nominal).toLocaleString('id-ID')} (${newInc.kategori}) berhasil disimpan.`);
+      setIsModalOpen(false);
+      setFormData({
+        tanggal: new Date().toISOString().slice(0, 10),
+        nominal: '',
+        kategori: 'Denda',
+        bookingId: '',
+        catatan: ''
+      });
+    } catch (err) {
+      console.error('Submit Pemasukan Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi pemasukan ke database.');
+    }
   };
 
   const totalPemasukan = pemasukanList.reduce((sum, item) => sum + (Number(item.nominal) || 0), 0);

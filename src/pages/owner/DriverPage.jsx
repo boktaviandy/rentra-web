@@ -51,8 +51,13 @@ export function DriverPage() {
       variant: 'danger'
     });
     if (ok) {
-      await deleteDriver(id);
-      toast.success('Driver Dihapus', `Data driver ${driver?.nama || ''} berhasil dihapus.`);
+      try {
+        await deleteDriver(id);
+        toast.success('Driver Dihapus', `Data driver ${driver?.nama || ''} berhasil dihapus.`);
+      } catch (err) {
+        console.error('Delete Driver Error:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data driver dari database.');
+      }
     }
   };
 
@@ -63,18 +68,23 @@ export function DriverPage() {
       tarif: Number(formData.tarif) || 0
     };
 
-    if (editingDriver) {
-      await updateDriver(editingDriver.id, { ...payload, id: editingDriver.id });
-      toast.success('Driver Diperbarui', `Informasi driver ${formData.nama} berhasil diperbarui.`);
-    } else {
-      const newDriver = {
-        ...payload,
-        id: `DRV-${String(Date.now()).slice(-4)}`
-      };
-      await addDriver(newDriver);
-      toast.success('Driver Ditambahkan', `Driver ${newDriver.nama} siap bertugas.`);
+    try {
+      if (editingDriver) {
+        await updateDriver(editingDriver.id, { ...payload, id: editingDriver.id });
+        toast.success('Driver Diperbarui', `Informasi driver ${formData.nama} berhasil diperbarui.`);
+      } else {
+        const newDriver = {
+          ...payload,
+          id: `DRV-${String(Date.now()).slice(-4)}`
+        };
+        await addDriver(newDriver);
+        toast.success('Driver Ditambahkan', `Driver ${newDriver.nama} siap bertugas.`);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Submit Driver Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data driver ke database.');
     }
-    setIsModalOpen(false);
   };
 
 

@@ -95,8 +95,13 @@ export function MobilPage() {
       variant: 'danger'
     });
     if (ok) {
-      await deleteMobil(id);
-      toast.success('Mobil Dihapus', `Data mobil ${mobil?.nama || ''} berhasil dihapus.`);
+      try {
+        await deleteMobil(id);
+        toast.success('Mobil Dihapus', `Data mobil ${mobil?.nama || ''} berhasil dihapus.`);
+      } catch (err) {
+        console.error('Delete Mobil Error:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data mobil dari database.');
+      }
     }
   };
 
@@ -110,20 +115,25 @@ export function MobilPage() {
       hargaBulanan: formData.hargaBulanan === '' ? 0 : Number(formData.hargaBulanan),
     };
 
-    if (editingMobil) {
-      await updateMobil(editingMobil.id, { ...payload, id: editingMobil.id });
-      toast.success('Data Diperbarui', `Informasi ${formData.nama} berhasil diperbarui.`);
-    } else {
-      const newMobil = {
-        ...payload,
-        id: `MOB-${String(Date.now()).slice(-4)}`,
-        totalHariDisewa: 0,
-        totalPendapatan: 0
-      };
-      await addMobil(newMobil);
-      toast.success('Mobil Ditambahkan', `Unit ${newMobil.nama} (${newMobil.plat}) berhasil masuk ke garasi.`);
+    try {
+      if (editingMobil) {
+        await updateMobil(editingMobil.id, { ...payload, id: editingMobil.id });
+        toast.success('Data Diperbarui', `Informasi ${formData.nama} berhasil diperbarui.`);
+      } else {
+        const newMobil = {
+          ...payload,
+          id: `MOB-${String(Date.now()).slice(-4)}`,
+          totalHariDisewa: 0,
+          totalPendapatan: 0
+        };
+        await addMobil(newMobil);
+        toast.success('Mobil Ditambahkan', `Unit ${newMobil.nama} (${newMobil.plat}) berhasil masuk ke garasi.`);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Submit Mobil Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data mobil ke database.');
     }
-    setIsModalOpen(false);
   };
 
 

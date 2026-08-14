@@ -13,25 +13,67 @@ const TABLE_MAP = {
   settings: 'settings',
 };
 
-// Sanitize payload for Supabase compatibility
+// Strict schema whitelists matching production Supabase PostgreSQL tables
+const TABLE_SCHEMAS = {
+  settings: [
+    'id', 'namaRental', 'namaOwner', 'noHp', 'email', 'alamat',
+    'zonaWaktu', 'mataUang', 'logo', 'namaBank', 'nomorRekening',
+    'atasNamaRekening', 'instruksiPembayaran', 'syaratKetentuan'
+  ],
+  mobil: [
+    'id', 'nama', 'plat', 'merk', 'tahun', 'hargaHarian',
+    'hargaMingguan', 'hargaBulanan', 'status', 'foto', 'fotoId',
+    'catatan', 'totalHariDisewa', 'totalPendapatan'
+  ],
+  customers: [
+    'id', 'nama', 'noHp', 'email', 'alamat', 'noKtp',
+    'noSim', 'fotoKtp', 'fotoSim', 'catatan', 'status', 'totalBooking'
+  ],
+  drivers: [
+    'id', 'nama', 'noHp', 'sim', 'tarif', 'status', 'foto', 'catatan'
+  ],
+  bookings: [
+    'id', 'customerId', 'customerNama', 'mobilId', 'mobilNama', 'mobilPlat',
+    'driverId', 'driverNama', 'tglMulai', 'tglSelesai', 'harga', 'deposit',
+    'metodePembayaran', 'status', 'statusPembayaran', 'catatan', 'createdAt'
+  ],
+  pemasukan: [
+    'id', 'tanggal', 'kategori', 'bookingId', 'nominal', 'catatan', 'bukti'
+  ],
+  pengeluaran: [
+    'id', 'tanggal', 'kategori', 'mobilId', 'mobilNama', 'bookingId', 'nominal', 'catatan', 'bukti'
+  ],
+  audit_logs: [
+    'id', 'timestamp', 'user', 'action', 'entity', 'entityId', 'details'
+  ]
+};
+
+// Sanitize payload using strict schema whitelists
 function sanitizePayload(tableName, payload) {
   if (!payload || typeof payload !== 'object') return payload;
-  const clean = { ...payload };
+  const validColumns = TABLE_SCHEMAS[tableName];
+  if (!validColumns) return { ...payload };
+
+  const clean = {};
+  validColumns.forEach((col) => {
+    if (payload[col] !== undefined) {
+      clean[col] = payload[col];
+    }
+  });
 
   if (tableName === 'settings') {
     clean.id = 1;
   } else if (tableName === 'mobil') {
-    const val = clean.hargaHarian ?? clean.hargaSewa ?? 0;
-    clean.hargaHarian = val;
-    clean.hargaSewa = val;
+    clean.hargaHarian = clean.hargaHarian ?? 0;
     clean.hargaMingguan = clean.hargaMingguan ?? 0;
     clean.hargaBulanan = clean.hargaBulanan ?? 0;
+    clean.totalHariDisewa = clean.totalHariDisewa ?? 0;
+    clean.totalPendapatan = clean.totalPendapatan ?? 0;
   } else if (tableName === 'bookings') {
-    clean.harga = clean.harga ?? clean.totalHarga ?? 0;
-    clean.totalHarga = clean.harga ?? clean.totalHarga ?? 0;
-    clean.metodePembayaran = clean.metodePembayaran ?? clean.metodeBayar ?? 'Transfer Bank';
-    clean.metodeBayar = clean.metodePembayaran ?? clean.metodeBayar ?? 'Transfer Bank';
+    clean.harga = clean.harga ?? 0;
+    clean.deposit = clean.deposit ?? 0;
   }
+
   return clean;
 }
 
@@ -53,7 +95,12 @@ export function useStore(entityKey) {
         .select('*');
 
       if (error) {
-        console.error(`Supabase Fetch Error (${tableName}):`, error);
+        console.error(`[Supabase Fetch Error] ${tableName}:`, {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         setIsLoading(false);
         return;
       }
@@ -91,8 +138,6 @@ export function useStore(entityKey) {
   // Bulk save & sync to Supabase
   const saveData = useCallback(
     async (newData) => {
-      setData(newData);
-
       try {
         if (Array.isArray(newData) && newData.length > 0) {
           const sanitized = newData.map((item) => sanitizePayload(tableName, item));
@@ -101,8 +146,13 @@ export function useStore(entityKey) {
             .upsert(sanitized);
 
           if (upsertErr) {
-            console.error(`Supabase Upsert Error (${tableName}):`, upsertErr);
-            return { success: false, error: upsertErr };
+            console.error(`[Supabase Upsert Error] ${tableName}:`, {
+              message: upsertErr.message,
+              code: upsertErr.code,
+              details: upsertErr.details,
+              hint: upsertErr.hint
+            });
+            throw upsertErr;
           }
           await fetchData();
           return { success: true };
@@ -110,7 +160,7 @@ export function useStore(entityKey) {
         return { success: true };
       } catch (e) {
         console.error(`Failed to sync ${tableName} with Supabase:`, e);
-        return { success: false, error: e };
+        throw e;
       }
     },
     [tableName, fetchData]
@@ -118,22 +168,28 @@ export function useStore(entityKey) {
 
   const addItem = useCallback(
     async (item) => {
-      // Optimistically update React UI
-      setData((prev) => [item, ...prev]);
-
       try {
         const payload = sanitizePayload(tableName, item);
-        const { error } = await supabase.from(tableName).insert([payload]);
+        const { data: inserted, error } = await supabase
+          .from(tableName)
+          .insert([payload])
+          .select('*');
 
         if (error) {
-          console.error(`Supabase Insert Warning (${tableName}):`, error);
-          const fallbackPayload = { id: item.id, nama: item.nama || item.kategori || '' };
-          await supabase.from(tableName).upsert([fallbackPayload]).catch(() => {});
-        } else {
-          fetchData();
+          console.error(`[Supabase Insert Error] ${tableName}:`, {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          throw error;
         }
+
+        await fetchData();
+        return { success: true, data: inserted };
       } catch (e) {
         console.error(`Insert failed for ${tableName}:`, e);
+        throw e;
       }
     },
     [tableName, fetchData]
@@ -141,24 +197,27 @@ export function useStore(entityKey) {
 
   const updateItem = useCallback(
     async (id, updatedFields) => {
-      setData((prev) => {
-        const exists = prev.some((d) => String(d.id) === String(id));
-        if (exists) {
-          return prev.map((d) => (String(d.id) === String(id) ? { ...d, ...updatedFields } : d));
-        }
-        return [{ id, ...updatedFields }, ...prev];
-      });
-
       try {
         const payload = sanitizePayload(tableName, { id, ...updatedFields });
         const { error } = await supabase
           .from(tableName)
           .upsert([payload]);
 
-        if (error) console.error(`Supabase Upsert Error (${tableName}):`, error);
-        else fetchData();
+        if (error) {
+          console.error(`[Supabase Update Error] ${tableName}:`, {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          throw error;
+        }
+
+        await fetchData();
+        return { success: true };
       } catch (e) {
-        console.error(e);
+        console.error(`Update failed for ${tableName}:`, e);
+        throw e;
       }
     },
     [tableName, fetchData]
@@ -166,20 +225,30 @@ export function useStore(entityKey) {
 
   const deleteItem = useCallback(
     async (id) => {
-      setData((prev) => prev.filter((d) => String(d.id) !== String(id)));
-
       try {
         const { error } = await supabase
           .from(tableName)
           .delete()
           .eq('id', id);
 
-        if (error) console.error(`Supabase Delete Error (${tableName}):`, error);
+        if (error) {
+          console.error(`[Supabase Delete Error] ${tableName}:`, {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint
+          });
+          throw error;
+        }
+
+        await fetchData();
+        return { success: true };
       } catch (e) {
-        console.error(e);
+        console.error(`Delete failed for ${tableName}:`, e);
+        throw e;
       }
     },
-    [tableName]
+    [tableName, fetchData]
   );
 
   return {

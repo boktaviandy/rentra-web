@@ -58,26 +58,36 @@ export function CustomerPage() {
       variant: 'danger'
     });
     if (ok) {
-      await deleteCustomer(id);
-      toast.success('Pelanggan Dihapus', `Data pelanggan ${cust?.nama || ''} berhasil dihapus.`);
+      try {
+        await deleteCustomer(id);
+        toast.success('Pelanggan Dihapus', `Data pelanggan ${cust?.nama || ''} berhasil dihapus.`);
+      } catch (err) {
+        console.error('Delete Customer Error:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus data pelanggan dari database.');
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingCustomer) {
-      await updateCustomer(editingCustomer.id, { ...formData, id: editingCustomer.id });
-      toast.success('Customer Diperbarui', `Data ${formData.nama} berhasil diperbarui.`);
-    } else {
-      const newCust = {
-        ...formData,
-        id: `CUST-${String(Date.now()).slice(-4)}`,
-        totalBooking: 0
-      };
-      await addCustomer(newCust);
-      toast.success('Customer Ditambahkan', `Pelanggan ${newCust.nama} berhasil didaftarkan.`);
+    try {
+      if (editingCustomer) {
+        await updateCustomer(editingCustomer.id, { ...formData, id: editingCustomer.id });
+        toast.success('Customer Diperbarui', `Data ${formData.nama} berhasil diperbarui.`);
+      } else {
+        const newCust = {
+          ...formData,
+          id: `CUST-${String(Date.now()).slice(-4)}`,
+          totalBooking: 0
+        };
+        await addCustomer(newCust);
+        toast.success('Customer Ditambahkan', `Pelanggan ${newCust.nama} berhasil didaftarkan.`);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Submit Customer Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan data pelanggan ke database.');
     }
-    setIsModalOpen(false);
   };
 
 

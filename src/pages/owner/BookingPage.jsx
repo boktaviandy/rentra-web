@@ -318,7 +318,7 @@ export function BookingPage() {
     toast.info('Status Diperbarui', `Status booking #${id} diubah menjadi ${newStatus}`);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const customerObj = customerData.find((c) => c.id === formData.customerId);
     const mobilObj = mobilData.find((m) => m.id === formData.mobilId);
@@ -339,64 +339,69 @@ export function BookingPage() {
 
     const statusPembayaran = totalDeposit >= totalHarga ? 'Lunas' : totalDeposit > 0 ? 'DP / Sebagian' : 'Belum Bayar';
 
-    if (editingBooking) {
-      // Edit / Extension mode
-      const updatedBooking = {
-        ...editingBooking,
-        customerId: formData.customerId,
-        customerNama: customerObj?.nama || editingBooking.customerNama,
-        mobilId: formData.mobilId,
-        mobilNama: mobilObj?.nama || editingBooking.mobilNama,
-        mobilPlat: mobilObj?.plat || editingBooking.mobilPlat,
-        driverId: formData.driverId || null,
-        driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
-        tglMulai: formData.tglMulai,
-        tglSelesai: formData.tglSelesai,
-        harga: totalHarga,
-        deposit: totalDeposit,
-        metodePembayaran: formData.metodePembayaran,
-        status: formData.status,
-        statusPembayaran,
-        catatan: formData.catatan
-      };
+    try {
+      if (editingBooking) {
+        // Edit / Extension mode
+        const updatedBooking = {
+          ...editingBooking,
+          customerId: formData.customerId,
+          customerNama: customerObj?.nama || editingBooking.customerNama,
+          mobilId: formData.mobilId,
+          mobilNama: mobilObj?.nama || editingBooking.mobilNama,
+          mobilPlat: mobilObj?.plat || editingBooking.mobilPlat,
+          driverId: formData.driverId || null,
+          driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
+          tglMulai: formData.tglMulai,
+          tglSelesai: formData.tglSelesai,
+          harga: totalHarga,
+          deposit: totalDeposit,
+          metodePembayaran: formData.metodePembayaran,
+          status: formData.status,
+          statusPembayaran,
+          catatan: formData.catatan
+        };
 
-      setBookingList(bookingList.map((b) => (b.id === editingBooking.id ? updatedBooking : b)));
-      syncBookingFinances(updatedBooking);
-      toast.success(
-        'Booking Diperbarui',
-        `Rincian booking #${editingBooking.id} berhasil disimpan & disinkronkan ke Keuangan!`
-      );
-    } else {
-      // New booking mode
-      const now = new Date();
-      const yr = now.getFullYear();
-      const mo = String(now.getMonth() + 1).padStart(2, '0');
-      const uniqueCode = String(Date.now()).slice(-4);
-      const newBooking = {
-        id: `BK-${yr}${mo}-${uniqueCode}`,
-        customerId: formData.customerId,
-        customerNama: customerObj?.nama || 'Customer',
-        mobilId: formData.mobilId,
-        mobilNama: mobilObj?.nama || 'Mobil',
-        mobilPlat: mobilObj?.plat || 'Plat',
-        driverId: formData.driverId || null,
-        driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
-        tglMulai: formData.tglMulai,
-        tglSelesai: formData.tglSelesai,
-        harga: totalHarga,
-        deposit: totalDeposit,
-        metodePembayaran: formData.metodePembayaran,
-        status: formData.status,
-        statusPembayaran,
-        catatan: formData.catatan,
-        createdAt: now.toISOString().slice(0, 10)
-      };
+        await updateBooking(editingBooking.id, updatedBooking);
+        syncBookingFinances(updatedBooking);
+        toast.success(
+          'Booking Diperbarui',
+          `Rincian booking #${editingBooking.id} berhasil disimpan & disinkronkan ke Keuangan!`
+        );
+      } else {
+        // New booking mode
+        const now = new Date();
+        const yr = now.getFullYear();
+        const mo = String(now.getMonth() + 1).padStart(2, '0');
+        const uniqueCode = String(Date.now()).slice(-4);
+        const newBooking = {
+          id: `BK-${yr}${mo}-${uniqueCode}`,
+          customerId: formData.customerId,
+          customerNama: customerObj?.nama || 'Customer',
+          mobilId: formData.mobilId,
+          mobilNama: mobilObj?.nama || 'Mobil',
+          mobilPlat: mobilObj?.plat || 'Plat',
+          driverId: formData.driverId || null,
+          driverNama: driverObj ? driverObj.nama : 'Tanpa Driver (Lepas Kunci)',
+          tglMulai: formData.tglMulai,
+          tglSelesai: formData.tglSelesai,
+          harga: totalHarga,
+          deposit: totalDeposit,
+          metodePembayaran: formData.metodePembayaran,
+          status: formData.status,
+          statusPembayaran,
+          catatan: formData.catatan,
+          createdAt: now.toISOString().slice(0, 10)
+        };
 
-      setBookingList([newBooking, ...bookingList]);
-      syncBookingFinances(newBooking);
-      toast.success('Booking Dibuat', `Transaksi #${newBooking.id} berhasil ditambahkan dan disinkronkan ke Keuangan.`);
+        await addBooking(newBooking);
+        syncBookingFinances(newBooking);
+        toast.success('Booking Dibuat', `Transaksi #${newBooking.id} berhasil ditambahkan dan disinkronkan ke Keuangan.`);
+      }
+      setIsModalOpen(false);
+    } catch (err) {
+      console.error('Submit Booking Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi booking ke database.');
     }
-    setIsModalOpen(false);
   };
 
 

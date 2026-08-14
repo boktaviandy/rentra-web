@@ -88,8 +88,13 @@ export function PengeluaranPage() {
       variant: 'danger'
     });
     if (ok) {
-      await deletePengeluaran(id);
-      toast.success('Pengeluaran Dihapus', 'Data pengeluaran berhasil dihapus.');
+      try {
+        await deletePengeluaran(id);
+        toast.success('Pengeluaran Dihapus', 'Data pengeluaran berhasil dihapus.');
+      } catch (err) {
+        console.error('Delete Pengeluaran Error:', err);
+        toast.error('Gagal Menghapus', 'Terjadi kesalahan saat menghapus transaksi pengeluaran.');
+      }
     }
   };
 
@@ -102,16 +107,22 @@ export function PengeluaranPage() {
       mobilNama: mobilObj ? mobilObj.nama : 'Umum / Operasional',
       nominal: Number(formData.nominal) || 0
     };
-    await addPengeluaran(newExp);
-    toast.success('Pengeluaran Dicatat', `Biaya Rp ${Number(newExp.nominal).toLocaleString('id-ID')} (${newExp.kategori}) berhasil disimpan.`);
-    setIsModalOpen(false);
-    setFormData({
-      tanggal: new Date().toISOString().slice(0, 10),
-      mobilId: mobilData[0]?.id || '',
-      nominal: '',
-      kategori: 'BBM',
-      catatan: ''
-    });
+
+    try {
+      await addPengeluaran(newExp);
+      toast.success('Pengeluaran Dicatat', `Biaya Rp ${Number(newExp.nominal).toLocaleString('id-ID')} (${newExp.kategori}) berhasil disimpan.`);
+      setIsModalOpen(false);
+      setFormData({
+        tanggal: new Date().toISOString().slice(0, 10),
+        mobilId: mobilData[0]?.id || '',
+        nominal: '',
+        kategori: 'BBM',
+        catatan: ''
+      });
+    } catch (err) {
+      console.error('Submit Pengeluaran Error:', err);
+      toast.error('Gagal Menyimpan', 'Terjadi kesalahan saat menyimpan transaksi pengeluaran ke database.');
+    }
   };
 
   const totalPengeluaran = pengeluaranList.reduce((sum, item) => sum + (Number(item.nominal) || 0), 0);
