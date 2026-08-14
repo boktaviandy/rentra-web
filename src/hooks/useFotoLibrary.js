@@ -238,79 +238,50 @@ export function useFotoLibrary() {
     }
   }, []);
 
-  /** Migration from legacy localStorage to Supabase Storage + PostgreSQL */
+  /** Migration from legacy Base64 to Supabase Storage + PostgreSQL */
   useEffect(() => {
     async function runMigration() {
       await loadFotos();
 
-      const isMigrated = localStorage.getItem(MIGRATION_FLAG_KEY);
-      if (isMigrated === 'true') return;
-
       try {
-        const legacyRaw = localStorage.getItem(LEGACY_STORAGE_KEY);
-        if (!legacyRaw) {
-          localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-          return;
-        }
-
-        const legacyItems = JSON.parse(legacyRaw);
-        if (!Array.isArray(legacyItems) || legacyItems.length === 0) {
-          localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-          return;
-        }
-
-        // Fetch current DB entries to avoid duplicate uploads
-        const { data: existingRows } = await supabase
+        const { data: dbRows } = await supabase
           .from('vehicle_photos')
-          .select('id, title, storage_path');
+          .select('*');
 
-        const existingIds = new Set((existingRows || []).map((r) => r.id));
-        const existingTitles = new Set((existingRows || []).map((r) => r.title?.toLowerCase()));
+        if (dbRows && dbRows.length > 0) {
+          for (const row of dbRows) {
+            const seedMatch = SEED_DATA.find((s) => s.id === row.id || s.title?.toLowerCase() === row.title?.toLowerCase());
+            const vehicleId = row.vehicle_id || seedMatch?.vehicle_id;
+            const needsFix = !row.vehicle_id || row.public_url?.startsWith('data:image') || row.storage_path?.startsWith('unassigned/');
 
-        for (const item of legacyItems) {
-          if (existingIds.has(item.id) || existingTitles.has(item.judul?.toLowerCase())) {
-            continue;
-          }
+            if (needsFix && seedMatch && vehicleId) {
+              const storagePath = `vehicles/${vehicleId}/${row.id}.webp`;
+              const publicUrl = `${SUPABASE_STORAGE_BASE}/${storagePath}`;
 
-          const imgSrc = getFotoSrc(item);
-          if (!imgSrc) continue;
+              if (row.public_url?.startsWith('data:image')) {
+                const blob = dataURLtoBlob(row.public_url);
+                if (blob) {
+                  const { error: stErr } = await supabase.storage
+                    .from(BUCKET_NAME)
+                    .upload(storagePath, blob, { contentType: 'image/webp', upsert: true });
 
-          let publicUrl = imgSrc;
-          let storagePath = `legacy/${item.id || Date.now()}.webp`;
-
-          if (imgSrc.startsWith('data:')) {
-            const blob = dataURLtoBlob(imgSrc);
-            if (blob) {
-              const { data: stData, error: stErr } = await supabase.storage
-                .from(BUCKET_NAME)
-                .upload(storagePath, blob, { contentType: blob.type || 'image/webp', upsert: true });
-
-              if (!stErr && stData) {
-                const { data: pUrl } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
-                if (pUrl?.publicUrl) publicUrl = pUrl.publicUrl;
+                  if (stErr) console.warn(`[Storage Upload Notice]: ${stErr.message}`);
+                }
               }
+
+              await supabase
+                .from('vehicle_photos')
+                .update({
+                  vehicle_id: vehicleId,
+                  storage_path: storagePath,
+                  public_url: publicUrl,
+                })
+                .eq('id', row.id);
             }
           }
-
-          const record = {
-            id: item.id || `FOTO-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
-            title: item.judul || 'Foto Mobil',
-            tags: item.keywords || [],
-            tahun: item.tahun || '-',
-            public_url: publicUrl,
-            storage_path: storagePath,
-            originalSize: item.originalSize || 0,
-            compressedSize: item.compressedSize || 0,
-            is_primary: false,
-          };
-
-          await supabase.from('vehicle_photos').upsert([record]);
         }
-
-        localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-        await loadFotos();
-      } catch (err) {
-        console.error('[Legacy Migration Error]:', err);
+      } catch (e) {
+        console.error('Migration execution error:', e);
       }
     }
 
