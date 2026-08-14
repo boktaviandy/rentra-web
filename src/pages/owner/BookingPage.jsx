@@ -31,9 +31,57 @@ export function BookingPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Helper tanggal awal
+  const getTodayDates = () => {
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return {
+      startStr: today.toISOString().slice(0, 10),
+      endStr: tomorrow.toISOString().slice(0, 10)
+    };
+  };
+
+  // Form State (Harus dideklarasikan SEBELUM availableMobilList agar tidak memicu Temporal Dead Zone)
+  const [formData, setFormData] = useState(() => {
+    const { startStr, endStr } = getTodayDates();
+    return {
+      customerId: '',
+      mobilId: '',
+      driverId: '',
+      tglMulai: startStr,
+      tglSelesai: endStr,
+      harga: 0,
+      deposit: 0,
+      metodePembayaran: 'Transfer Bank',
+      status: 'Booking',
+      catatan: ''
+    };
+  });
+
+  // Calculate duration & auto price (Harus dideklarasikan SEBELUM handler & render)
+  const calculateAutoPrice = (mobilId, driverId, startStr, endStr) => {
+    const start = new Date(startStr || new Date());
+    const end = new Date(endStr || new Date());
+    const diffTime = Math.max(0, end - start);
+    const durasiHari = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+    const mobilObj = (mobilData || []).find((m) => m.id === mobilId);
+    const driverObj = (driverData || []).find((d) => d.id === driverId);
+
+    const hargaHarianMobil = mobilObj ? Number(mobilObj.hargaHarian || mobilObj.hargaSewa || 0) : 0;
+    const tarifDriver = driverObj ? Number(driverObj.tarif) || 0 : 0;
+
+    return {
+      durasiHari,
+      totalHarga: durasiHari * (hargaHarianMobil + tarifDriver)
+    };
+  };
 
   // Dynamic availability list based on date overlaps and vehicle status
-  const availableMobilList = mobilData.filter((m) => {
+  const availableMobilList = (mobilData || []).filter((m) => {
     if (m.status === 'Servis' || m.status === 'Nonaktif') return false;
 
     const isOverlap = (bookingList || []).some((b) => {
@@ -48,8 +96,8 @@ export function BookingPage() {
 
       const existingStart = b.tglMulai;
       const existingEnd = b.tglSelesai;
-      const newStart = formData.tglMulai;
-      const newEnd = formData.tglSelesai;
+      const newStart = formData?.tglMulai;
+      const newEnd = formData?.tglSelesai;
 
       if (!existingStart || !existingEnd || !newStart || !newEnd) return false;
 
@@ -156,52 +204,6 @@ export function BookingPage() {
 
     if (refetchPemasukan) await refetchPemasukan();
     if (refetchPengeluaran) await refetchPengeluaran();
-  };
-
-
-  const getTodayDates = () => {
-    const today = new Date();
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return {
-      startStr: today.toISOString().slice(0, 10),
-      endStr: tomorrow.toISOString().slice(0, 10)
-    };
-  };
-
-  const [formData, setFormData] = useState(() => {
-    const { startStr, endStr } = getTodayDates();
-    return {
-      customerId: '',
-      mobilId: '',
-      driverId: '',
-      tglMulai: startStr,
-      tglSelesai: endStr,
-      harga: 0,
-      deposit: 0,
-      metodePembayaran: 'Transfer Bank',
-      status: 'Booking',
-      catatan: ''
-    };
-  });
-
-  // Calculate duration & auto price
-  const calculateAutoPrice = (mobilId, driverId, startStr, endStr) => {
-    const start = new Date(startStr || new Date());
-    const end = new Date(endStr || new Date());
-    const diffTime = Math.max(0, end - start);
-    const durasiHari = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-
-    const mobilObj = mobilData.find((m) => m.id === mobilId);
-    const driverObj = driverData.find((d) => d.id === driverId);
-
-    const hargaHarianMobil = mobilObj ? Number(mobilObj.hargaHarian || mobilObj.hargaSewa || 0) : 0;
-    const tarifDriver = driverObj ? Number(driverObj.tarif) || 0 : 0;
-
-    return {
-      durasiHari,
-      totalHarga: durasiHari * (hargaHarianMobil + tarifDriver)
-    };
   };
 
   const handleOpenAdd = async () => {
@@ -345,8 +347,6 @@ export function BookingPage() {
       toast.error('Gagal Mengubah Status', 'Terjadi kesalahan saat mengubah status booking di database.');
     }
   };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
