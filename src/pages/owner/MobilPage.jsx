@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 import { compressImage } from '../../utils/imageCompressor';
+import { getFotoSrc } from '../../hooks/useFotoLibrary';
 import './MobilPage.css';
 
 
@@ -174,25 +175,28 @@ export function MobilPage() {
   const columns = [
     {
       header: 'Mobil',
-      cell: (row) => (
-        <div className="mobil-info-cell">
-          {row.foto ? (
-            <img
-              src={row.foto}
-              alt={row.nama}
-              className="mobil-thumb"
-              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-            />
-          ) : null}
-          <div className={`mobil-thumb-placeholder ${row.foto ? 'hidden' : ''}`}>
-            <Car size={18} />
+      cell: (row) => {
+        const imgSrc = getFotoSrc(row.foto);
+        return (
+          <div className="mobil-info-cell">
+            {imgSrc ? (
+              <img
+                src={imgSrc}
+                alt={row.nama}
+                className="mobil-thumb"
+                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+              />
+            ) : null}
+            <div className={`mobil-thumb-placeholder ${imgSrc ? 'hidden' : ''}`}>
+              <Car size={18} />
+            </div>
+            <div>
+              <div className="mobil-title">{row.nama}</div>
+              <div className="mobil-sub">{row.merk} • {row.tahun}</div>
+            </div>
           </div>
-          <div>
-            <div className="mobil-title">{row.nama}</div>
-            <div className="mobil-sub">{row.merk} • {row.tahun}</div>
-          </div>
-        </div>
-      )
+        );
+      }
     },
     {
       header: 'Plat Nomor',
@@ -391,9 +395,9 @@ export function MobilPage() {
           <div className="form-group">
             <label className="form-label">Foto Mobil</label>
 
-            {formData.foto ? (
+            {getFotoSrc(formData.foto) ? (
               <div className="mobil-foto-preview">
-                <img src={formData.foto} alt="Preview" className="mobil-foto-preview-img" />
+                <img src={getFotoSrc(formData.foto)} alt="Preview" className="mobil-foto-preview-img" />
                 <div className="mobil-foto-preview-actions">
                   <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                     <Upload size={14} /> Upload / Kamera HP

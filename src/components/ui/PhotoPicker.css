@@ -184,6 +184,10 @@
   background: var(--bg-app);
 }
 
+.hidden-fallback {
+  display: none !important;
+}
+
 /* Placeholder for seed photos */
 .pp-placeholder {
   width: 100%;

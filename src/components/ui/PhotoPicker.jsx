@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Search, X, CheckCircle2, ImageOff, Car } from 'lucide-react';
-import { useFotoLibrary } from '../../hooks/useFotoLibrary';
+import { useFotoLibrary, getFotoSrc } from '../../hooks/useFotoLibrary';
 import './PhotoPicker.css';
 
 /** Placeholder SVG for seed photos without a real base64 */
@@ -87,22 +87,32 @@ export function PhotoPicker({ isOpen, onClose, onSelect, carName = '', currentFo
         <div className="pp-grid">
           {hasResults ? (
             displayList.map((foto) => {
-              const isSelected = currentFoto === foto.base64 || currentFoto === foto.id;
+              const imgSrc = getFotoSrc(foto);
+              const isSelected = currentFoto === imgSrc || (foto.base64 && currentFoto === foto.base64) || currentFoto === foto.id;
               return (
                 <button
                   key={foto.id}
                   className={`pp-card ${isSelected ? 'pp-card-selected' : ''}`}
                   onClick={() => {
-                    onSelect(foto.base64, foto.id);
+                    onSelect(imgSrc, foto.id);
                     onClose();
                   }}
                   title={foto.judul}
                 >
-                  {foto.base64 ? (
-                    <img src={foto.base64} alt={foto.judul} className="pp-card-img" />
-                  ) : (
+                  {imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={foto.judul}
+                      className="pp-card-img"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={`pp-placeholder-wrapper ${imgSrc ? 'hidden-fallback' : ''}`}>
                     <CarPlaceholder label={foto.judul} />
-                  )}
+                  </div>
                   {isSelected && (
                     <div className="pp-selected-badge">
                       <CheckCircle2 size={18} />

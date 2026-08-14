@@ -5,6 +5,7 @@ import { StatCard } from '../../components/ui/StatCard';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { ArrowLeft, Calendar, DollarSign, Wrench, Clock, FileText, Car } from 'lucide-react';
 import { useStore } from '../../hooks/useStore';
+import { getFotoSrc } from '../../hooks/useFotoLibrary';
 import './MobilDetailPage.css';
 
 export function MobilDetailPage() {
@@ -34,6 +35,8 @@ export function MobilDetailPage() {
     );
   }
 
+  const heroImgSrc = getFotoSrc(mobil.foto);
+
   // Riwayat filtering for this car
   const riwayatBooking = bookingData.filter((b) => b.mobilId === mobil.id);
   const riwayatServis = pengeluaranData.filter((p) => p.mobilId === mobil.id || p.mobilNama?.includes(mobil.nama));
@@ -58,9 +61,9 @@ export function MobilDetailPage() {
       {/* Main Info Card */}
       <div className="mobil-hero-card card">
         <div className="hero-img-box">
-          {mobil.foto ? (
+          {heroImgSrc ? (
             <img
-              src={mobil.foto}
+              src={heroImgSrc}
               alt={mobil.nama}
               className="hero-img"
               onError={(e) => {
@@ -70,7 +73,7 @@ export function MobilDetailPage() {
               }}
             />
           ) : null}
-          <div className={`hero-img-placeholder ${mobil.foto ? 'hidden-placeholder' : ''}`}>
+          <div className={`hero-img-placeholder ${heroImgSrc ? 'hidden-placeholder' : ''}`}>
             <Car size={44} className="hero-placeholder-icon" />
             <span>Foto Belum Ditambahkan</span>
           </div>

@@ -266,6 +266,10 @@
   margin-bottom: 8px;
 }
 
+.hidden-fallback {
+  display: none !important;
+}
+
 /* Modal Body & Dropzone */
 .gfp-modal-body {
   display: flex;

@@ -14,7 +14,7 @@ import {
   Sparkles,
   Layers,
 } from 'lucide-react';
-import { useFotoLibrary } from '../../hooks/useFotoLibrary';
+import { useFotoLibrary, getFotoSrc } from '../../hooks/useFotoLibrary';
 import { compressImage, formatFileSize } from '../../utils/imageCompressor';
 import './GaleriFotoPage.css';
 
@@ -282,11 +282,20 @@ export function GaleriFotoPage() {
             <div key={foto.id} className="gfp-card">
               {/* Image Preview */}
               <div className="gfp-card-media">
-                {foto.base64 ? (
-                  <img src={foto.base64} alt={foto.judul} className="gfp-card-img" />
-                ) : (
+                {getFotoSrc(foto) ? (
+                  <img
+                    src={getFotoSrc(foto)}
+                    alt={foto.judul}
+                    className="gfp-card-img"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      if (e.target.nextSibling) e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className={`gfp-placeholder-wrapper ${getFotoSrc(foto) ? 'hidden-fallback' : ''}`}>
                   <CarPlaceholderCard label={foto.judul} />
-                )}
+                </div>
                 {foto.compressedSize > 0 && (
                   <span className="gfp-size-badge">
                     {formatFileSize(foto.compressedSize)}
