@@ -5,10 +5,11 @@ import { Table } from '../../components/ui/Table';
 import { Badge, getStatusBadgeVariant } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { PhotoPicker } from '../../components/ui/PhotoPicker';
-import { Plus, Eye, Edit, Trash2, Car, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Car, Image as ImageIcon, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
+import { compressImage } from '../../utils/imageCompressor';
 import './MobilPage.css';
 
 
@@ -79,6 +80,24 @@ export function MobilPage() {
   };
 
   const { toast, confirm } = useToast();
+
+  const handleDirectFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const res = await compressImage(file, { maxWidth: 800, maxHeight: 600, quality: 0.75 });
+      setFormData((prev) => ({
+        ...prev,
+        foto: res.base64,
+        fotoId: ''
+      }));
+      toast.success('Foto Berhasil Diunggah', 'Foto mobil berhasil disimpan.');
+    } catch (err) {
+      console.error('Upload foto error:', err);
+      toast.error('Gagal Mengunggah', 'Gagal memproses file foto. Pastikan file berupa gambar.');
+    }
+  };
 
   const handleOpenEdit = (mobil) => {
     setEditingMobil(mobil);
@@ -368,7 +387,7 @@ export function MobilPage() {
           </div>
 
 
-          {/* Foto Mobil — Photo Picker */}
+          {/* Foto Mobil — Direct Upload & Photo Picker */}
           <div className="form-group">
             <label className="form-label">Foto Mobil</label>
 
@@ -376,12 +395,21 @@ export function MobilPage() {
               <div className="mobil-foto-preview">
                 <img src={formData.foto} alt="Preview" className="mobil-foto-preview-img" />
                 <div className="mobil-foto-preview-actions">
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Upload size={14} /> Upload / Kamera HP
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleDirectFileUpload}
+                    />
+                  </label>
                   <button
                     type="button"
                     className="btn btn-secondary"
                     onClick={() => setIsPickerOpen(true)}
                   >
-                    <ImageIcon size={14} /> Ganti Foto
+                    <ImageIcon size={14} /> Library Foto
                   </button>
                   <button
                     type="button"
@@ -394,19 +422,29 @@ export function MobilPage() {
                 </div>
               </div>
             ) : (
-              <button
-                type="button"
-                className="mobil-foto-picker-btn"
-                onClick={() => setIsPickerOpen(true)}
-              >
-                <Car size={24} className="mobil-foto-picker-icon" />
-                <span className="mobil-foto-picker-label">Pilih Foto dari Library</span>
-                <span className="mobil-foto-picker-hint">
-                  {formData.nama
-                    ? `Foto akan difilter berdasarkan: "${formData.nama}"`
-                    : 'Isi nama mobil terlebih dahulu untuk saran foto otomatis'}
-                </span>
-              </button>
+              <div className="mobil-foto-options">
+                <label className="mobil-foto-upload-card">
+                  <Upload size={24} className="mobil-foto-icon primary" />
+                  <span className="mobil-foto-title">Upload / Ambil Foto HP</span>
+                  <span className="mobil-foto-sub">Pilih dari Galeri atau Kamera HP</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleDirectFileUpload}
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  className="mobil-foto-upload-card"
+                  onClick={() => setIsPickerOpen(true)}
+                >
+                  <ImageIcon size={24} className="mobil-foto-icon secondary" />
+                  <span className="mobil-foto-title">Pilih dari Library Foto</span>
+                  <span className="mobil-foto-sub">Gunakan foto galeri bawaan sistem</span>
+                </button>
+              </div>
             )}
           </div>
 
