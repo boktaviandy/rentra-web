@@ -10,13 +10,15 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../../hooks/useStore';
 import { useToast } from '../../context/ToastContext';
 import { compressImage } from '../../utils/imageCompressor';
-import { getFotoSrc } from '../../hooks/useFotoLibrary';
+import { useFotoLibrary, getFotoSrc } from '../../hooks/useFotoLibrary';
 import './MobilPage.css';
 
 
 export function MobilPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { toast, confirm } = useToast();
+  const { uploadFoto } = useFotoLibrary();
 
   const { data: mobilList, addItem: addMobil, updateItem: updateMobil, deleteItem: deleteMobil } = useStore('mobil');
   const { data: bookingList } = useStore('booking');
@@ -79,10 +81,6 @@ export function MobilPage() {
     });
     setIsModalOpen(true);
   };
-
-  const { toast, confirm } = useToast();
-
-  const { uploadFoto } = useFotoLibrary();
 
   const handleDirectFileUpload = async (e) => {
     const file = e.target.files?.[0];
