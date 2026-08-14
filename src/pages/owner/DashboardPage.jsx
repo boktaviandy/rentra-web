@@ -49,9 +49,14 @@ export function DashboardPage() {
   ];
   const currentMonthLabel = `${monthNames[currentMonth]} ${currentYear}`;
 
+  const targetYearMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
   const isCurrentMonth = (dateStr) => {
     if (!dateStr) return false;
-    const d = new Date(dateStr);
+    const str = String(dateStr).trim();
+    if (str.length >= 7) {
+      return str.slice(0, 7) === targetYearMonth;
+    }
+    const d = new Date(str);
     return !isNaN(d.getTime()) && d.getFullYear() === currentYear && d.getMonth() === currentMonth;
   };
 

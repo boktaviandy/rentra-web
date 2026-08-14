@@ -66,7 +66,7 @@ export function BookingPage() {
   const syncBookingFinances = async (bookingObj, isDelete = false) => {
     if (!bookingObj || !bookingObj.id) return;
 
-    if (isDelete) {
+    if (isDelete || bookingObj.status === 'Dibatalkan') {
       // 1. Hapus transaksi pemasukan & pengeluaran otomatis terkait bookingId dari database PostgreSQL
       const { error: incErr } = await supabase.from('pemasukan').delete().eq('bookingId', bookingObj.id);
       if (incErr) console.error('[FINANCE SYNC DELETE PEMASUKAN ERROR]', incErr);
