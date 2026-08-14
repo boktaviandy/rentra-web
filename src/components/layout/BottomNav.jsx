@@ -120,6 +120,7 @@ export function BottomNav() {
                 }}
               >
                 <LogOut size={18} />
+                <span>{t('nav.logout') || 'Keluar / Logout'}</span>
               </button>
             </div>
           </div>

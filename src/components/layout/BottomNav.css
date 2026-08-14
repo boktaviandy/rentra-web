@@ -52,7 +52,7 @@
   inset: 0;
   background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
-  z-index: 99;
+  z-index: 1000;
   display: flex;
   align-items: flex-end;
   animation: fadeIn 0.2s ease-out;
@@ -63,9 +63,10 @@
   width: 100%;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
-  padding: 20px;
+  padding: 20px 20px calc(var(--bottom-nav-height, 60px) + 24px) 20px;
   border-top: 1px solid var(--border-color);
   animation: slideUp 0.25s ease-out;
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-drawer-header {
@@ -88,7 +89,7 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 16px;
-  max-height: 55vh;
+  max-height: 50vh;
   overflow-y: auto;
   padding: 4px;
 }
@@ -142,17 +143,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
+  gap: 10px;
+  width: 100%;
+  height: 48px;
   border-radius: var(--radius-md);
   background: var(--danger-light);
   color: var(--danger);
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.15s ease;
   border: 1px solid var(--danger-border);
 }
 
-.mobile-drawer-logout-btn:hover {
+.mobile-drawer-logout-btn:hover,
+.mobile-drawer-logout-btn:active {
   background: var(--danger);
   color: #FFFFFF;
 }
@@ -161,4 +166,5 @@
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
 

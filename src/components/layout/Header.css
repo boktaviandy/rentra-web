@@ -278,3 +278,25 @@
   border: 1px solid var(--primary-border, rgba(59, 130, 246, 0.2));
   letter-spacing: 0.5px;
 }
+
+.logout-header-btn {
+  color: var(--danger, #ef4444);
+  border-color: rgba(239, 68, 68, 0.25);
+  background: var(--danger-light, rgba(239, 68, 68, 0.08));
+}
+
+.logout-header-btn:hover {
+  background: var(--danger, #ef4444);
+  color: #ffffff;
+  border-color: var(--danger, #ef4444);
+}
+
+@media (max-width: 600px) {
+  .logout-text {
+    display: none;
+  }
+  .logout-header-btn {
+    padding: 8px;
+  }
+}
+

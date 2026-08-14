@@ -1,23 +1,30 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
 import { useLanguage } from '../../hooks/useLanguage';
 import { useAuth } from '../../hooks/useAuth';
 import { useStore } from '../../hooks/useStore';
-import { Moon, Sun, Globe, Search, User, CarFront } from 'lucide-react';
+import { Moon, Sun, Globe, Search, User, CarFront, LogOut } from 'lucide-react';
 import './Header.css';
 
 export function Header() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   const { currentLang, toggleLanguage } = useLanguage();
-  const { currentUser } = useAuth();
+  const { currentUser, logout } = useAuth();
   const { data: rentalSettings } = useStore('settings');
 
   const activeSettings = Array.isArray(rentalSettings) && rentalSettings[0] ? rentalSettings[0] : {};
   const rentalLogo = activeSettings.logo || null;
   const namaRental = activeSettings.namaRental || 'Rentra';
   const namaOwner = activeSettings.namaOwner || currentUser?.nama || 'Owner';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="header-wrapper">
@@ -77,6 +84,16 @@ export function Header() {
               <span className="user-role">{namaRental}</span>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="header-action-btn logout-header-btn"
+            title={t('nav.logout') || 'Logout'}
+          >
+            <LogOut size={17} />
+            <span className="logout-text">{t('nav.logout') || 'Logout'}</span>
+          </button>
         </div>
       </header>
     </div>
